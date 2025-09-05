@@ -1,4 +1,4 @@
-package com.shivalingeshwara.arts.controllers;
+package com.shivalingeshwara.arts.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -9,7 +9,7 @@ public class HelloController {
 
     @GetMapping("/")
     public String home(Model model) {
-        model.addAttribute("title", "Welcome to Shivaligeshwara Arts");
+        model.addAttribute("title", "Shivaligeshwara Arts");
         return "index";
     }
 }

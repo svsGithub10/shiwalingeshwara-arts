@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Add Order | Shivalingeshwara Arts</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <img th:src="@{/images/logo.png}" alt="Logo">
+        <h1>Shivalingeshwara Arts</h1>
+    </header>
+
+    <!-- Page Content -->
+    <div class="container">
+        <h2>Add New Order</h2>
+        <form th:action="@{/orders}" th:object="${order}" method="post">
+            <label>Customer Name:</label>
+            <input type="text" th:field="*{customerName}" required>
+
+            <label>Contact Info:</label>
+            <input type="text" th:field="*{contactInfo}" required>
+
+            <label>Description:</label>
+            <textarea th:field="*{description}" required></textarea>
+
+            <label>Price:</label>
+            <input type="number" th:field="*{price}" step="0.01" required>
+
+            <label>Advance:</label>
+            <input type="number" th:field="*{advance}" step="0.01" required>
+
+            <label>Due Date:</label>
+            <input type="date" th:field="*{dueDate}" required>
+
+            <button type="submit">Save</button>
+        </form>
+        <br>
+        <a href="/orders">⬅ Back to Orders</a>
+    </div>
+    
+
+    <!-- Footer -->
+    <footer>
+        © 2025 Shivalingeshwara Arts. All Rights Reserved.
+    </footer>
+</body>
+</html>

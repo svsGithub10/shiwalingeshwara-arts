@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Orders | Shivalingeshwara Arts</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <img th:src="@{/images/logo.png}" alt="Logo">
+        <h1>Shivalingeshwara Arts</h1>
+    </header>
+
+    <!-- Page Content -->
+    <div class="container">
+        <h2>Orders</h2>
+        <a href="/orders/new">➕ Add New Order</a>
+        <table>
+            <tr>
+                <th>ID</th>
+                <th>Customer</th>
+                <th>Description</th>
+                <th>Price</th>
+                <th>Advance</th>
+                <th>Balance</th>
+                <th>Status</th>
+                <th>Due Date</th>
+            </tr>
+            <tr th:each="order : ${orders}">
+                <td th:text="${order.id}"></td>
+                <td th:text="${order.customerName}"></td>
+                <td th:text="${order.description}"></td>
+                <td th:text="${order.price}"></td>
+                <td th:text="${order.advance}"></td>
+                <td th:text="${order.balance}"></td>
+                <td th:text="${order.status}"></td>
+                <td th:text="${order.dueDate}"></td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="home">
+        <a th:href="@{/}">Home</a>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        © 2025 Shivalingeshwara Arts. All Rights Reserved.
+    </footer>
+</body>
+</html>
