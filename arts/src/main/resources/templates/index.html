@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title th:text="${title}">Shivaligeshwara Arts</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <header>
+        <img src="/images/logo.png" alt="Logo" style="height:80px;">
+        <h1 th:text="${title}"></h1>
+    </header>
+    <nav>
+        <a href="/">Home</a> | 
+        <a href="/portfolio">Portfolio</a> | 
+        <a href="/shop">Shop (Coming Soon)</a>
+    </nav>
+    <main>
+        <p>This is your Shivaligeshwara Arts application running on localhost 🎨</p>
+    </main>
+</body>
+</html>
