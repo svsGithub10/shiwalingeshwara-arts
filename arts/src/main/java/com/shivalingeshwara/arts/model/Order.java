@@ -1,12 +1,18 @@
 package com.shivalingeshwara.arts.model;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -16,10 +22,10 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "orders")
-@Data // Generates getters, setters, toString, equals, and hashCode
-@NoArgsConstructor // Generates no-args constructor
-@AllArgsConstructor // Generates all-args constructor
-@Builder // Enables builder pattern
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Order {
 
     @Id
@@ -40,6 +46,16 @@ public class Order {
     private LocalDate dueDate;
 
     private String status; // Pending / In Progress / Completed / Delivered
+
+    // ✅ New field: reference image (nullable)
+    private String referenceImage;
+
+    // ✅ Link to payments (with cascade + orphan removal)
+    @Builder.Default
+// Order.java
+@OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+@JsonManagedReference
+private List<Payment> payments = new ArrayList<>();
 
     @PrePersist
     public void onCreate() {

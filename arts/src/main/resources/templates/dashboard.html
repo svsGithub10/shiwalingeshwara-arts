@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Dashboard | Shivalingeshwara Arts</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+</head>
+<body>
+    <header>
+        <img th:src="@{/images/logo.png}" alt="Logo">
+        <h1>Shivalingeshwara Arts</h1>
+    </header>
+
+    <nav>
+        <a class="btn link" href="/">Home</a> |
+        <a class="btn link" href="/orders">Orders</a>
+    </nav>
+
+    <hr>
+
+    <div class="dashboard">
+
+        <!-- ROW 1: status grid (left) + today's earnings (right) -->
+        <div class="top-row">
+            <div class="left-col">
+                <div class="status-grid">
+                    <div class="status-card pending">
+                        <div class="label">Pending</div>
+                        <div class="value" th:text="${pending != null ? pending : '-'}">-</div>
+                    </div>
+
+                    <div class="status-card progress">
+                        <div class="label">In Progress</div>
+                        <div class="value" th:text="${inProgress != null ? inProgress : '-'}">-</div>
+                    </div>
+
+                    <div class="status-card completed">
+                        <div class="label">Completed</div>
+                        <div class="value" th:text="${completed != null ? completed : '-'}">-</div>
+                    </div>
+
+                    <div class="status-card delivered">
+                        <div class="label">Delivered</div>
+                        <div class="value" th:text="${delivered != null ? delivered : '-'}">-</div>
+                    </div>
+                </div>
+            </div>
+
+<div class="right-col">
+  <div class="summary-box">
+    <!-- Header updates dynamically -->
+    <h3 id="earningsTitle">Today's Earnings</h3>
+
+    <!-- Date picker -->
+    <input type="date" id="earningsDate" onchange="loadEarningsByDate(this.value)"
+           style="margin-bottom:10px; padding:5px;">
+
+    <div class="line">
+      <div class="k">Total Orders</div>
+      <div class="v" id="ordersCount">-</div>
+    </div>
+
+    <div class="line">
+      <div class="k">Amount Received</div>
+      <div class="v" id="amountReceived">-</div>
+    </div>
+
+    <div class="line">
+      <div class="k">Pending Amount</div>
+      <div class="v" id="pendingAmount">-</div>
+    </div>
+  </div>
+</div>
+
+        </div>
+
+        <script>
+function loadEarningsByDate(date) {
+    if (!date) return;
+
+    fetch(`/dashboard/api/earnings?date=${date}`)
+        .then(res => res.json())
+        .then(data => {
+            // Update values
+            document.getElementById("ordersCount").textContent = data.orders ?? "-";
+            document.getElementById("amountReceived").textContent = data.received ? "₹" + data.received : "-";
+            document.getElementById("pendingAmount").textContent = data.pending ? "₹" + data.pending : "-";
+
+            // Update heading
+            const selectedDate = new Date(date);
+            const today = new Date();
+            const yesterday = new Date();
+            yesterday.setDate(today.getDate() - 1);
+
+            let title = selectedDate.toDateString();
+
+            if (selectedDate.toDateString() === today.toDateString()) {
+                title = "Today's Earnings";
+            } else if (selectedDate.toDateString() === yesterday.toDateString()) {
+                title = "Yesterday's Earnings";
+            } else {
+                // Example: "7 August Earnings"
+                title = selectedDate.getDate() + " " +
+                        selectedDate.toLocaleString('default', { month: 'long' }) +
+                        " Earnings";
+            }
+
+            document.getElementById("earningsTitle").textContent = title;
+        });
+}
+</script>
+<script>
+window.addEventListener("DOMContentLoaded", () => {
+    const today = new Date().toISOString().split("T")[0];
+    document.getElementById("earningsDate").value = today;
+    loadEarningsByDate(today);
+});
+</script>
+
+
+
+        <!-- ROW 2: Month & Year side by side -->
+        <div class="row">
+<div class="summary-box" id="monthBox">
+    <!-- Header with month picker -->
+    <div style="display:flex; align-items:center; justify-content:space-between;">
+        <h3 id="monthHeader">This Month</h3>
+        <input type="month" id="monthPicker" style="padding:3px 6px;">
+    </div>
+
+    <!-- Stats -->
+    <div class="line">
+        <div class="k">Total Orders</div>
+        <div class="v" id="monthOrders">-</div>
+    </div>
+    <div class="line">
+        <div class="k">Revenue Received</div>
+        <div class="v">₹<span id="monthReceived">-</span></div>
+    </div>
+    <div class="line">
+        <div class="k">Pending Balance</div>
+        <div class="v">₹<span id="monthPending">-</span></div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const monthPicker = document.getElementById("monthPicker");
+    const monthHeader = document.getElementById("monthHeader");
+
+    // set default = current month
+    const now = new Date();
+    monthPicker.value = now.toISOString().slice(0, 7);
+    loadMonthData(monthPicker.value);
+
+    monthPicker.addEventListener("change", function () {
+        loadMonthData(this.value);
+    });
+
+    function loadMonthData(monthValue) {
+        if (!monthValue) return;
+
+        // Format month header
+        const [year, month] = monthValue.split("-");
+        const selectedDate = new Date(year, month - 1);
+        const currentDate = new Date();
+
+        if (selectedDate.getMonth() === currentDate.getMonth() &&
+            selectedDate.getFullYear() === currentDate.getFullYear()) {
+            monthHeader.textContent = "This Month";
+        } else {
+            const monthName = selectedDate.toLocaleString('default', { month: 'long' });
+            monthHeader.textContent = `${monthName} ${year}`;
+        }
+
+        // Fetch backend API (example endpoint)
+        fetch(`/dashboard/api/earnings/month?year=${year}&month=${month}`)
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById("monthOrders").textContent = data.orders ?? "-";
+                document.getElementById("monthReceived").textContent = data.received ?? "-";
+                document.getElementById("monthPending").textContent = data.pending ?? "-";
+            })
+            .catch(err => console.error("Error loading month data", err));
+    }
+});
+</script>
+
+
+<div class="summary-box" id="yearBox">
+    <!-- Header with year picker -->
+    <div style="display:flex; align-items:center; justify-content:space-between;">
+        <h3 id="yearHeader">This Year</h3>
+        <select id="yearPicker" style="padding:3px 6px;"></select>
+    </div>
+
+    <!-- Stats -->
+    <div class="line">
+        <div class="k">Total Orders</div>
+        <div class="v" id="yearOrders">-</div>
+    </div>
+    <div class="line">
+        <div class="k">Revenue Received</div>
+        <div class="v">₹<span id="yearReceived">-</span></div>
+    </div>
+    <div class="line">
+        <div class="k">Pending Balance</div>
+        <div class="v">₹<span id="yearPending">-</span></div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const yearPicker = document.getElementById("yearPicker");
+    const yearHeader = document.getElementById("yearHeader");
+
+    const currentYear = new Date().getFullYear();
+
+    // Populate years (last 5 years + current)
+    for (let y = currentYear; y >= currentYear - 5; y--) {
+        let opt = document.createElement("option");
+        opt.value = y;
+        opt.textContent = y;
+        yearPicker.appendChild(opt);
+    }
+
+    // default select current year
+    yearPicker.value = currentYear;
+    loadYearData(currentYear);
+
+    yearPicker.addEventListener("change", function () {
+        loadYearData(this.value);
+    });
+
+    function loadYearData(yearValue) {
+        if (!yearValue) return;
+
+        if (parseInt(yearValue) === currentYear) {
+            yearHeader.textContent = "This Year";
+        } else {
+            yearHeader.textContent = yearValue;
+        }
+
+        fetch(`/dashboard/api/earnings/year?year=${yearValue}`)
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById("yearOrders").textContent = data.orders ?? "-";
+                document.getElementById("yearReceived").textContent = data.received ?? "-";
+                document.getElementById("yearPending").textContent = data.pending ?? "-";
+            })
+            .catch(err => console.error("Error loading year data", err));
+    }
+});
+</script>
+
+        </div>
+
+        <!-- ROW 3: Gross totals -->
+        <div class="summary-box gross">
+            <h3>Gross Totals</h3>
+            <div class="line">
+                <div class="k">Total Orders</div>
+                <div class="v" th:text="${totalOrders != null ? totalOrders : '-'}">-</div>
+            </div>
+            <div class="line">
+                <div class="k">Total Revenue Received</div>
+                <div class="v">
+                    <span th:if="${totalReceived != null}">₹<span th:text="${totalReceived}"></span></span>
+                    <span th:unless="${totalReceived != null}">-</span>
+                </div>
+            </div>
+            <div class="line">
+                <div class="k">Total Pending Balance</div>
+                <div class="v">
+                    <span th:if="${totalPending != null}">₹<span th:text="${totalPending}"></span></span>
+                    <span th:unless="${totalPending != null}">-</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+        <footer>
+        © 2025 Shivalingeshwara Arts. All Rights Reserved.
+    </footer>
+</body>
+</html>

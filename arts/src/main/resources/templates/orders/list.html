@@ -2,6 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Orders | Shivalingeshwara Arts</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
@@ -10,39 +11,624 @@
         <img th:src="@{/images/logo.png}" alt="Logo">
         <h1>Shivalingeshwara Arts</h1>
     </header>
+        <nav>
+        <a class="btn link" href="/">Home</a> |
+        <a class="btn link" href="/dashboard">📊 Dashboard</a>
+    </nav>
+    <hr>
 
-    <!-- Page Content -->
-    <div class="container">
-        <h2>Orders</h2>
-        <a href="/orders/new">➕ Add New Order</a>
-        <table>
-            <tr>
-                <th>ID</th>
-                <th>Customer</th>
-                <th>Description</th>
-                <th>Price</th>
-                <th>Advance</th>
-                <th>Balance</th>
-                <th>Status</th>
-                <th>Due Date</th>
-            </tr>
-            <tr th:each="order : ${orders}">
-                <td th:text="${order.id}"></td>
-                <td th:text="${order.customerName}"></td>
-                <td th:text="${order.description}"></td>
-                <td th:text="${order.price}"></td>
-                <td th:text="${order.advance}"></td>
-                <td th:text="${order.balance}"></td>
-                <td th:text="${order.status}"></td>
-                <td th:text="${order.dueDate}"></td>
-            </tr>
-        </table>
+<!-- ====== START: Orders Container (replace the old container/table) ====== -->
+<div class="container">
+
+    <div class="header-actions">
+        <div class="title-group">
+            <h2>📋 Orders</h2>
+            <div class="subtitle">Manage orders, payments and statuses</div>
+        </div>
+
+        <div class="top-actions">
+            <button class="btn primary" type="button" onclick="openAddOrderModal()">➕ Add New Order</button>
+            <button class="btn outline" type="button" onclick="openAllPaymentsModal()">💰 All Payments</button>
+            
+        </div>
     </div>
 
-    <div class="home">
-        <a th:href="@{/}">Home</a>
+    <!-- Filters (keeps your existing input ids so JS & other modals still work) -->
+    <div class="filters">
+        <input id="filterOrderId" type="number" placeholder="Order ID">
+        <input id="filterCustomer" type="text" placeholder="Customer name">
+        <select id="filterStatus">
+            <option value="">All Status</option>
+            <option value="Pending">Pending</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Completed">Completed</option>
+            <option value="Delivered">Delivered</option>
+        </select>
+        <input id="filterFrom" type="date">
+        <input id="filterTo" type="date">
+        <button class="btn primary" type="button" onclick="searchOrders()">🔍Search</button>
+        <button class="btn danger" type="button" onclick="resetFilters()">Reset</button>
     </div>
 
+    <!-- Orders list: JS will render cards here -->
+    <div id="ordersList" class="orders-list">
+        <!-- cards injected here by searchOrders() -->
+    </div>
+
+
+</div>
+<!-- ====== END: Orders Container ====== -->
+
+
+<!-- Payment Modal -->
+<div id="paymentModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Add Payment</h2>
+            <span class="close" onclick="closePaymentModal()">&times;</span>
+        </div>
+
+        <!-- Pending Amount Display -->
+        <div class="info-box">
+            <p><b>Pending Amount:</b> ₹<span id="pendingAmount">0</span></p>
+        </div>
+
+        <!-- QR Code -->
+        <canvas id="qrCode"></canvas>
+
+        <!-- Payment Form -->
+        <form id="paymentForm" method="post" class="form-fields">
+            <!-- hidden orderId -->
+            <input type="hidden" id="orderId" name="orderId">
+
+            <label for="paymentAmount">Amount</label>
+            <input type="number" id="paymentAmount" name="amount" step="0.01" required>
+
+            <label for="method">Method</label>
+            <select id="method" name="method" required>
+                <option value="Cash">Cash</option>
+                <option value="UPI">UPI</option>
+            </select>
+
+            <button type="submit" class="btn-primary">💰 Save Payment</button>
+        </form>
+    </div>
+</div>
+
+<!-- Payment Log Modal -->
+<div id="paymentLogModal" class="modal">
+    <div class="modal-content" style="max-width:600px;">
+        <div class="modal-header">
+            <h2>Payment History</h2>
+            <span class="close" onclick="closePaymentLogModal()">&times;</span>
+        </div>
+
+        <!-- Info Box for Advance -->
+        <div class="info-box">
+            <p><b>Advance Paid:</b> ₹<span id="advanceAmount">0</span></p>
+        </div>
+
+        <!-- Table -->
+<table class="summary-table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Amount</th>
+            <th>Method</th>
+            <th>Date</th>
+        </tr>
+    </thead>
+    <tbody id="paymentLogTable">
+        <tr>
+            <td colspan="4" style="text-align:center;">Loading...</td>
+        </tr>
+    </tbody>
+</table>
+    </div>
+</div>
+
+<!-- ✅ All Payments Modal -->
+<div id="allPaymentsModal" class="modal">
+  <div class="modal-content" style="max-width: 800px;">
+    
+    <!-- Header -->
+    <div class="modal-header">
+      <h2>All Payments</h2>
+      <span class="close" onclick="closeAllPaymentsModal()">&times;</span>
+    </div>
+
+    <!-- ✅ Filters -->
+<div class="filters" style="margin-bottom: 10px; display: flex; gap: 10px;">
+  <input type="text" id="filterId" placeholder="Filter by Order ID" oninput="applyFilters()">
+  <input type="text" id="filterName" placeholder="Filter by Customer Name" oninput="applyFilters()">
+  <input type="date" id="filterDate" onchange="applyFilters()">
+  <select id="filterMethod" onchange="applyFilters()">
+    <option value="">All Methods</option>
+    <option value="Cash">Cash</option>
+    <option value="Card">Card</option>
+    <option value="UPI">UPI</option>
+  </select>
+</div>
+
+
+    <!-- Table -->
+    <div class="table-responsive">
+      <table class="summary-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Order ID</th>
+            <th>Customer</th>
+            <th>Amount</th>
+            <th>Method</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody id="allPaymentsTable">
+          <tr><td colspan="6">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+function openAllPaymentsModal() {
+    document.getElementById("allPaymentsModal").classList.add("show");
+    loadAllPayments(); // Load all payments
+}
+
+function closeAllPaymentsModal() {
+    document.getElementById("allPaymentsModal").classList.remove("show");
+}
+
+let allPaymentsData = []; // store all data for filtering
+
+function loadAllPayments() {
+    fetch("orders/payments/all")
+        .then(res => res.json())
+        .then(data => {
+            allPaymentsData = data; // save raw data
+            renderPayments(data);   // show initially
+        })
+        .catch(err => {
+            console.error(err);
+            document.getElementById("allPaymentsTable").innerHTML = "<tr><td colspan='6'>Error loading payments</td></tr>";
+        });
+}
+
+function renderPayments(data) {
+    let rows = "";
+    if (data.length === 0) {
+        rows = `<tr><td colspan="6">No payments found</td></tr>`;
+    } else {
+        data.forEach(p => {
+            rows += `
+                <tr>
+                    <td>${p.id}</td>
+                    <td>${p.orderId}</td>
+                    <td>${p.customerName}</td>
+                    <td>₹${p.amount}</td>
+                    <td>${p.method}</td>
+                    <td>${new Date(p.paymentDate).toLocaleDateString()}</td>
+                </tr>
+            `;
+        });
+    }
+    document.getElementById("allPaymentsTable").innerHTML = rows;
+}
+
+function applyFilters() {
+    let idFilter = document.getElementById("filterId").value.toLowerCase();
+    let nameFilter = document.getElementById("filterName").value.toLowerCase();
+    let dateFilter = document.getElementById("filterDate").value;
+    let methodFilter = document.getElementById("filterMethod").value;
+
+    let filtered = allPaymentsData.filter(p => {
+        // ✅ Use ORDER ID instead of PAYMENT ID
+        let matchId = idFilter === "" || String(p.orderId).toLowerCase().includes(idFilter);
+        let matchName = nameFilter === "" || (p.customerName && p.customerName.toLowerCase().includes(nameFilter));
+        let matchDate = dateFilter === "" || new Date(p.paymentDate).toISOString().split("T")[0] === dateFilter;
+        let matchMethod = methodFilter === "" || p.method === methodFilter;
+
+        return matchId && matchName && matchDate && matchMethod;
+    });
+
+    renderPayments(filtered);
+}
+
+</script>
+
+
+
+
+
+<!-- Add Order Modal -->
+<div id="addOrderModal" class="modal">
+  <div class="modal-content">
+    
+    <!-- Header -->
+    <div class="modal-header">
+      <h2>Add New Order</h2>
+      <span class="close" onclick="closeAddOrderModal()">&times;</span>
+    </div>
+
+    <!-- Form -->
+    <form id="addOrderForm" th:action="@{/orders}" 
+          th:object="${order}" 
+          method="post" 
+          enctype="multipart/form-data">
+
+      <div class="form-fields">
+        <label>Customer Name:</label>
+        <input type="text" name="customerName" required>
+
+        <label>Contact Info:</label>
+        <input type="text" name="contactInfo" required>
+
+        <label>Description:</label>
+        <textarea name="description" rows="3" required></textarea>
+
+        <label>Price:</label>
+        <input type="number" name="price" step="0.01" required>
+
+        <label>Advance:</label>
+        <input type="number" name="advance" step="0.01" required>
+
+        <label>Due Date:</label>
+        <input type="date" name="dueDate" required>
+
+        <label>Reference Image (optional):</label>
+        <input type="file" name="file" accept="image/*">
+      </div>
+
+      <br>
+      <button type="submit" class="btn-primary">Save Order</button>
+    </form>
+
+  </div>
+</div>
+
+
+<!-- ✅ Edit Order Modal -->
+<div id="editOrderModal" class="modal">
+  <div class="modal-content">
+    
+    <!-- Header -->
+    <div class="modal-header">
+      <h2>Edit Order</h2>
+      <span class="close" onclick="closeEditOrderModal()">&times;</span>
+    </div>
+
+    <!-- Form -->
+    <form id="editOrderForm" method="post" enctype="multipart/form-data" class="form-fields">
+      <input type="hidden" name="id" id="editOrderId">
+
+      <label for="editCustomerName">Customer Name:</label>
+      <input type="text" name="customerName" id="editCustomerName" required>
+
+      <label for="editContactInfo">Contact Info:</label>
+      <input type="text" name="contactInfo" id="editContactInfo" required>
+
+      <label for="editDescription">Description:</label>
+      <textarea name="description" id="editDescription" rows="4" required></textarea>
+
+      <label for="editPrice">Price:</label>
+      <input type="number" name="price" id="editPrice" step="0.01" required>
+
+      <label for="editAdvance">Advance:</label>
+      <input type="number" name="advance" id="editAdvance" step="0.01" required>
+
+      <label for="editDueDate">Due Date:</label>
+      <input type="date" name="dueDate" id="editDueDate" required>
+
+      <label for="editStatus">Status:</label>
+      <select name="status" id="editStatus">
+        <option value="Pending">Pending</option>
+        <option value="In Progress">In Progress</option>
+        <option value="Completed">Completed</option>
+        <option value="Delivered">Delivered</option>
+      </select>
+
+      <label for="editFile">Reference Image (optional):</label>
+      <input type="file" name="file" id="editFile" accept="image/*">
+
+      <div id="editCurrentImageWrapper" style="display:none;">
+        <p>Current Image:</p>
+        <img id="editCurrentImage" style="max-width:200px; border:1px solid #ccc; padding:5px;">
+      </div>
+
+      <button type="submit" class="btn-primary">Update Order</button>
+    </form>
+  </div>
+</div>
+
+
+
+
+
+
+<script>
+function searchOrders() {
+    let params = new URLSearchParams();
+
+    let id = document.getElementById("filterOrderId").value;
+    let customer = document.getElementById("filterCustomer").value;
+    let status = document.getElementById("filterStatus").value;
+    let from = document.getElementById("filterFrom").value;
+    let to = document.getElementById("filterTo").value;
+
+    if (id) params.append("id", id);
+    if (customer) params.append("customerName", customer);
+    if (status) params.append("status", status);
+    if (from) params.append("fromDate", from);
+    if (to) params.append("toDate", to);
+
+    fetch("/orders/search?" + params.toString())
+        .then(res => {
+            if (!res.ok) throw new Error("HTTP " + res.status);
+            return res.json();
+        })
+        .then(data => {
+            const container = document.getElementById("ordersList");
+            if (!data || data.length === 0) {
+                container.innerHTML = `<div class="order-card"><div style="text-align:center; color:#6b7280;">No orders found</div></div>`;
+                return;
+            }
+
+            let html = '';
+            data.forEach(order => {
+                // compute paid (old logic used price - balance)
+                const paid = order.price != null && order.balance != null ? (order.price - order.balance) : null;
+                const refImg = order.referenceImage ? `<img src="/uploads/${order.referenceImage}" alt="Ref">` : '';
+
+                // status pill class
+                let statusClass = 'status-pending';
+                if (order.status === 'In Progress') statusClass = 'status-progress';
+                else if (order.status === 'Completed') statusClass = 'status-completed';
+                else if (order.status === 'Delivered') statusClass = 'status-delivered';
+
+                html += `
+                <div class="order-card" data-id="${order.id}">
+                    <div class="order-header">
+                        <div class="order-id">#${order.id}</div>
+                        <div class="customer-name"><span style="color: #0369a1">Name: </span>${escapeHtml(order.customerName || '-')}</div>
+                        <div class="customer-name"><span style="color: #0369a1">Ph. no.: </span>${escapeHtml(order.contactInfo || '-')}</div>
+                    </div>
+
+                    <div class="order-body">
+                        <div class="desc">${escapeHtml(order.description || '-')}</div>
+                        <div class="ref-img">${refImg}</div>
+                    </div>
+
+                    <div class="order-finance">
+                        <div class="field"><div class="label">Price</div><div class="value">₹${order.price != null ? order.price : '-'}</div></div>
+                        <div class="field"><div class="label">Paid</div><div class="value">₹${paid != null ? paid : '-'}</div></div>
+                        <div class="field"><div class="label">Balance</div><div class="value">₹${order.balance != null ? order.balance : '-'}</div></div>
+                    </div>
+
+<div class="order-status">
+    <div>
+        ${
+            order.status === "Pending"
+            ? `<form action="/orders/update-status/${order.id}" method="post" style="display:inline;">
+                   <button type="submit" class="status-pill status-pending">Pending → Start Work?</button>
+               </form>`
+            : order.status === "In Progress"
+            ? `<form action="/orders/update-status/${order.id}" method="post" style="display:inline;">
+                   <button type="submit" class="status-pill status-progress">In Progress → Mark Completed?</button>
+               </form>`
+            : order.status === "Completed"
+            ? `<form action="/orders/update-status/${order.id}" method="post" style="display:inline;">
+                   <button type="submit" class="status-pill status-completed">Completed → Delivered?</button>
+               </form>`
+            : `<span class="status-pill status-delivered">✔ Delivered</span>`
+        }
+        <span style="margin-left:10px;color:#6b7280;font-weight:600;">Due: ${order.dueDate ? escapeHtml(order.dueDate) : '-'}</span>
+    </div>
+
+
+                        <div>
+                            <div class="order-actions">
+                                <button class="btn primary" onclick="fetchOrderDetails(${order.id})">✏️ Edit</button>
+
+                                <form action="/orders/delete/${order.id}" method="post" onsubmit="return confirm('Delete this order?')">
+                                    <button class="btn danger" type="submit">🗑️ Delete</button>
+                                </form>
+
+                                ${/* Add Payment button only if balance > 0 */''}
+                                ${(order.balance != null && order.balance > 0) ? `<button class="btn outline" onclick="openPaymentModal(${order.id}, ${order.balance})">💰 Pay</button>` : `<button class="btn outline" disabled style="opacity:0.6">Paid</button>`}
+
+                                <button class="btn est" onclick="openPaymentLogModal(${order.id})">📜 Payments</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        })
+        .catch(err => {
+            console.error(err);
+            document.getElementById("ordersList").innerHTML = `<div class="order-card"><div style="text-align:center;color:#ef4444;">Error loading orders</div></div>`;
+        });
+}
+
+/* small helper to avoid breaking HTML with unsafe values */
+function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+// Keep resetFilters and DOMContentLoaded binding as before
+function resetFilters() {
+    document.getElementById("filterOrderId").value = "";
+    document.getElementById("filterCustomer").value = "";
+    document.getElementById("filterStatus").value = "";
+    document.getElementById("filterFrom").value = "";
+    document.getElementById("filterTo").value = "";
+    searchOrders();
+}
+document.addEventListener("DOMContentLoaded", searchOrders);
+</script>
+
+
+
+
+
+<!-- QRious JS -->
+<script src="https://cdn.jsdelivr.net/npm/qrious/dist/qrious.min.js"></script>
+<script>
+let qr;
+
+function openPaymentModal(orderId, pendingAmount) {
+    const modal = document.getElementById("paymentModal");
+    modal.classList.add("show");
+
+    // Fill values
+    document.getElementById("orderId").value = orderId;
+    document.getElementById("pendingAmount").innerText = pendingAmount;
+    document.getElementById("paymentAmount").value = pendingAmount;
+
+    // Generate initial QR
+    const upiId = "8431983269@ybl";
+    const amount = pendingAmount;
+    const upiUrl = `upi://pay?pa=${upiId}&pn=Shivalingeshwara%20Arts&am=${amount}&cu=INR`;
+
+    qr = new QRious({
+        element: document.getElementById("qrCode"),
+        value: upiUrl,
+        size: 200
+    });
+
+    // Update QR when user changes amount
+    document.getElementById("paymentAmount").addEventListener("input", function() {
+        const newAmount = this.value || 0;
+        const newUrl = `upi://pay?pa=${upiId}&pn=Shivalingeshwara%20Arts&am=${newAmount}&cu=INR`;
+        qr.value = newUrl;
+    });
+
+    // Set form action
+    document.getElementById("paymentForm").action = "/orders/" + orderId + "/payments";
+}
+
+function closePaymentModal() {
+    document.getElementById("paymentModal").classList.remove("show");
+}
+</script>
+
+
+<!-- Peyment logs -->
+<script>
+function openPaymentLogModal(orderId) {
+    const modal = document.getElementById("paymentLogModal");
+    modal.classList.add("show");
+
+    // Reset table
+    document.getElementById("paymentLogTable").innerHTML = "<tr><td colspan='4' style='text-align:center; padding:10px;'>Loading...</td></tr>";
+
+    // Fetch data
+    fetch("/orders/" + orderId + "/payments/json")
+        .then(response => response.json())
+        .then(data => {
+            // Fill advance
+            document.getElementById("advanceAmount").innerText = data.advance ?? "-";
+
+            // Build rows
+            let rows = "";
+            if (data.payments.length === 0) {
+                rows = "<tr><td colspan='4' style='text-align:center; padding:10px;'>No payments found</td></tr>";
+            } else {
+                data.payments.forEach(p => {
+                    rows += `<tr>
+                        <td style="padding:6px; border:1px solid #ddd;">${p.id}</td>
+                        <td style="padding:6px; border:1px solid #ddd;">₹${p.amount}</td>
+                        <td style="padding:6px; border:1px solid #ddd;">${p.method}</td>
+                        <td style="padding:6px; border:1px solid #ddd;">${new Date(p.paymentDate).toLocaleString()}</td>
+                    </tr>`;
+                });
+            }
+            document.getElementById("paymentLogTable").innerHTML = rows;
+        })
+        .catch(err => {
+            document.getElementById("paymentLogTable").innerHTML = "<tr><td colspan='4' style='text-align:center; padding:10px;'>Error loading payments</td></tr>";
+            console.error(err);
+        });
+}
+
+function closePaymentLogModal() {
+    document.getElementById("paymentLogModal").classList.remove("show");
+}
+</script>
+
+
+
+
+
+
+
+<script>
+function openAddOrderModal() {
+        const modal = document.getElementById("addOrderModal");
+    modal.classList.add("show");
+}
+
+function closeAddOrderModal() {
+    document.getElementById("addOrderModal").classList.remove("show");
+}
+
+// Close modal on outside click
+
+</script>
+
+
+<script>
+function openEditOrderModal(order) {
+            const modal = document.getElementById("editOrderModal");
+    modal.classList.add("show");
+
+    // Fill form fields
+    document.getElementById("editOrderId").value = order.id;
+    document.getElementById("editCustomerName").value = order.customerName;
+    document.getElementById("editContactInfo").value = order.contactInfo;
+    document.getElementById("editDescription").value = order.description;
+    document.getElementById("editPrice").value = order.price;
+    document.getElementById("editAdvance").value = order.advance;
+    document.getElementById("editDueDate").value = order.dueDate;
+    document.getElementById("editStatus").value = order.status;
+
+    // Current image
+    if (order.referenceImage) {
+        document.getElementById("editCurrentImageWrapper").style.display = "block";
+        document.getElementById("editCurrentImage").src = "/uploads/" + order.referenceImage;
+    } else {
+        document.getElementById("editCurrentImageWrapper").style.display = "none";
+    }
+
+    // Set form action
+    document.getElementById("editOrderForm").action = "/orders/update/" + order.id;
+}
+
+function closeEditOrderModal() {
+    document.getElementById("editOrderModal").classList.remove("show");
+}
+</script>
+<script>
+function fetchOrderDetails(orderId) {
+    fetch("/orders/" + orderId + "/json")
+        .then(response => response.json())
+        .then(order => {
+            openEditOrderModal(order);
+        })
+        .catch(err => console.error("Error loading order:", err));
+}
+</script>
     <!-- Footer -->
     <footer>
         © 2025 Shivalingeshwara Arts. All Rights Reserved.
