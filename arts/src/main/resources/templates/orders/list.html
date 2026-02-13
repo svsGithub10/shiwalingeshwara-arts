@@ -12,9 +12,11 @@
         <h1>Shivalingeshwara Arts</h1>
     </header>
         <nav>
-        <a class="btn link" href="/">Home</a> |
-        <a class="btn link" href="/dashboard">📊 Dashboard</a>
-    </nav>
+            <a class="btn link" href="/">Home</a> |
+            <a class="btn link active" href="/orders">📋 Orders</a> |
+            <a class="btn link" href="/clients">👥 Clients</a>
+        </nav>
+
     <hr>
 
 <!-- ====== START: Orders Container (replace the old container/table) ====== -->
@@ -76,6 +78,13 @@
         <!-- QR Code -->
         <canvas id="qrCode"></canvas>
 
+        <p style="text-align:center; margin-top:8px; font-size:0.95rem; color:#374151;">
+            Pay with any 
+            <img src="data:image/png;base64,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" 
+                 alt="UPI" style="height:20px; vertical-align:middle;"> 
+            application
+        </p>
+
         <!-- Payment Form -->
         <form id="paymentForm" method="post" class="form-fields">
             <!-- hidden orderId -->
@@ -129,7 +138,7 @@
 
 <!-- ✅ All Payments Modal -->
 <div id="allPaymentsModal" class="modal">
-  <div class="modal-content" style="max-width: 800px;">
+  <div class="modal-content" style="max-width:800px; max-height:90vh; display:flex; flex-direction:column;">
     
     <!-- Header -->
     <div class="modal-header">
@@ -152,7 +161,7 @@
 
 
     <!-- Table -->
-    <div class="table-responsive">
+    <div class="table-responsive" style="overflow-y:auto; flex:1;">
       <table class="summary-table">
         <thead>
           <tr>
@@ -172,6 +181,295 @@
   </div>
 </div>
 
+<!-- Dashboard Floating Button -->
+<button class="fab-dashboard" onclick="openDashboardModal()" title="Dashboard">
+    📊
+</button>
+
+<!-- Dashboard Modal -->
+<div id="dashboardModal" class="modal">
+  <div class="modal-content" style="max-width:1200px;">
+    
+    <div class="modal-header">
+      <h2>📊 Dashboard</h2>
+      <span class="close" onclick="closeDashboardModal()">&times;</span>
+    </div>
+
+    <div class="dashboard">
+
+
+<!-- ROW 1: status grid (left) + today's earnings (right) -->
+<div class="top-row">
+    <div class="left-col">
+        <div class="status-grid">
+
+            <div class="status-card pending">
+                <div class="label">Pending</div>
+                <div class="value" id="dashPending">-</div>
+            </div>
+
+            <div class="status-card progress">
+                <div class="label">In Progress</div>
+                <div class="value" id="dashProgress">-</div>
+            </div>
+
+            <div class="status-card completed">
+                <div class="label">Completed</div>
+                <div class="value" id="dashCompleted">-</div>
+            </div>
+
+            <div class="status-card delivered">
+                <div class="label">Delivered</div>
+                <div class="value" id="dashDelivered">-</div>
+            </div>
+
+        </div>
+    </div>
+
+
+<div class="right-col">
+  <div class="summary-box">
+    <!-- Header updates dynamically -->
+    <h3 id="earningsTitle">Today's Earnings</h3>
+
+    <!-- Date picker -->
+    <input type="date" id="earningsDate" onchange="loadEarningsByDate(this.value)"
+           style="margin-bottom:10px; padding:5px;">
+
+    <div class="line">
+      <div class="k">Total Orders</div>
+      <div class="v" id="ordersCount">-</div>
+    </div>
+
+    <div class="line">
+      <div class="k">Amount Received</div>
+      <div class="v" id="amountReceived">-</div>
+    </div>
+
+    <div class="line">
+      <div class="k">Pending Amount</div>
+      <div class="v" id="dashPendingAmount">-</div>
+    </div>
+  </div>
+</div>
+
+        </div>
+
+        <script>
+function loadEarningsByDate(date) {
+    if (!date) return;
+
+    fetch(`/dashboard/api/earnings?date=${date}`)
+        .then(res => res.json())
+        .then(data => {
+            // Update values
+            document.getElementById("ordersCount").textContent = data.orders ?? "-";
+            document.getElementById("amountReceived").textContent = data.received ? "₹" + data.received : "-";
+            document.getElementById("dashPendingAmount").textContent = data.pending != null ? "₹" + data.pending : "-";
+
+
+            // Update heading
+            const selectedDate = new Date(date);
+            const today = new Date();
+            const yesterday = new Date();
+            yesterday.setDate(today.getDate() - 1);
+
+            let title = selectedDate.toDateString();
+
+            if (selectedDate.toDateString() === today.toDateString()) {
+                title = "Today's Earnings";
+            } else if (selectedDate.toDateString() === yesterday.toDateString()) {
+                title = "Yesterday's Earnings";
+            } else {
+                // Example: "7 August Earnings"
+                title = selectedDate.getDate() + " " +
+                        selectedDate.toLocaleString('default', { month: 'long' }) +
+                        " Earnings";
+            }
+
+            document.getElementById("earningsTitle").textContent = title;
+        });
+}
+</script>
+<script>
+window.addEventListener("DOMContentLoaded", () => {
+    const today = new Date().toISOString().split("T")[0];
+    document.getElementById("earningsDate").value = today;
+    loadEarningsByDate(today);
+});
+</script>
+
+
+
+<!-- ROW 2: Month & Year side by side -->
+<div class="row">
+<div class="summary-box" id="monthBox">
+    <!-- Header with month picker -->
+    <div style="display:flex; align-items:center; justify-content:space-between;">
+        <h3 id="monthHeader">This Month</h3>
+        <input type="month" id="monthPicker" style="padding:3px 6px;">
+    </div>
+
+    <!-- Stats -->
+    <div class="line">
+        <div class="k">Total Orders</div>
+        <div class="v" id="monthOrders">-</div>
+    </div>
+    <div class="line">
+        <div class="k">Revenue Received</div>
+        <div class="v">₹<span id="monthReceived">-</span></div>
+    </div>
+    <div class="line">
+        <div class="k">Pending Balance</div>
+        <div class="v">₹<span id="monthPending">-</span></div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const monthPicker = document.getElementById("monthPicker");
+    const monthHeader = document.getElementById("monthHeader");
+
+    // set default = current month
+    const now = new Date();
+    monthPicker.value = now.toISOString().slice(0, 7);
+    loadMonthData(monthPicker.value);
+
+    monthPicker.addEventListener("change", function () {
+        loadMonthData(this.value);
+    });
+
+    function loadMonthData(monthValue) {
+        if (!monthValue) return;
+
+        // Format month header
+        const [year, month] = monthValue.split("-");
+        const selectedDate = new Date(year, month - 1);
+        const currentDate = new Date();
+
+        if (selectedDate.getMonth() === currentDate.getMonth() &&
+            selectedDate.getFullYear() === currentDate.getFullYear()) {
+            monthHeader.textContent = "This Month";
+        } else {
+            const monthName = selectedDate.toLocaleString('default', { month: 'long' });
+            monthHeader.textContent = `${monthName} ${year}`;
+        }
+
+        // Fetch backend API (example endpoint)
+        fetch(`/dashboard/api/earnings/month?year=${year}&month=${month}`)
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById("monthOrders").textContent = data.orders ?? "-";
+                document.getElementById("monthReceived").textContent = data.received ?? "-";
+                document.getElementById("monthPending").textContent = data.pending ?? "-";
+            })
+            .catch(err => console.error("Error loading month data", err));
+    }
+});
+</script>
+
+
+<div class="summary-box" id="yearBox">
+    <!-- Header with year picker -->
+    <div style="display:flex; align-items:center; justify-content:space-between;">
+        <h3 id="yearHeader">This Year</h3>
+        <select id="yearPicker" style="padding:3px 6px;"></select>
+    </div>
+
+    <!-- Stats -->
+    <div class="line">
+        <div class="k">Total Orders</div>
+        <div class="v" id="yearOrders">-</div>
+    </div>
+    <div class="line">
+        <div class="k">Revenue Received</div>
+        <div class="v">₹<span id="yearReceived">-</span></div>
+    </div>
+    <div class="line">
+        <div class="k">Pending Balance</div>
+        <div class="v">₹<span id="yearPending">-</span></div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const yearPicker = document.getElementById("yearPicker");
+    const yearHeader = document.getElementById("yearHeader");
+
+    const currentYear = new Date().getFullYear();
+
+    // Populate years (last 5 years + current)
+    for (let y = currentYear; y >= currentYear - 5; y--) {
+        let opt = document.createElement("option");
+        opt.value = y;
+        opt.textContent = y;
+        yearPicker.appendChild(opt);
+    }
+
+    // default select current year
+    yearPicker.value = currentYear;
+    loadYearData(currentYear);
+
+    yearPicker.addEventListener("change", function () {
+        loadYearData(this.value);
+    });
+
+    function loadYearData(yearValue) {
+        if (!yearValue) return;
+
+        if (parseInt(yearValue) === currentYear) {
+            yearHeader.textContent = "This Year";
+        } else {
+            yearHeader.textContent = yearValue;
+        }
+
+        fetch(`/dashboard/api/earnings/year?year=${yearValue}`)
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById("yearOrders").textContent = data.orders ?? "-";
+                document.getElementById("yearReceived").textContent = data.received ?? "-";
+                document.getElementById("yearPending").textContent = data.pending ?? "-";
+            })
+            .catch(err => console.error("Error loading year data", err));
+    }
+});
+</script>
+
+        </div>
+
+        <!-- ROW 3: Gross totals -->
+        <div class="summary-box gross">
+            <h3>Gross Totals</h3>
+            <div class="line">
+                <div class="k">Total Orders</div>
+                <div class="v" id="dashTotalOrders">-</div>
+            </div>
+            <div class="line">
+                <div class="k">Total Revenue Received</div>
+                <div class="v" id="dashTotalReceived">-</div>
+            </div>
+            <div class="line">
+                <div class="k">Total Pending Balance</div>
+                <div class="v" id="dashTotalPending">-</div>
+            </div>
+        </div>
+
+    </div>
+
+  </div>
+</div>
+
+<script>
+function openDashboardModal() {
+    document.getElementById("dashboardModal").classList.add("show");
+}
+
+function closeDashboardModal() {
+    document.getElementById("dashboardModal").classList.remove("show");
+}
+</script>
+
+
 <script>
 function openAllPaymentsModal() {
     document.getElementById("allPaymentsModal").classList.add("show");
@@ -188,14 +486,20 @@ function loadAllPayments() {
     fetch("orders/payments/all")
         .then(res => res.json())
         .then(data => {
-            allPaymentsData = data; // save raw data
+
+            // ✅ ADD THIS LINE (MOST RECENT FIRST)
+            data.sort((a, b) => new Date(b.paymentDate) - new Date(a.paymentDate));
+
+            allPaymentsData = data; // save sorted data
             renderPayments(data);   // show initially
         })
         .catch(err => {
             console.error(err);
-            document.getElementById("allPaymentsTable").innerHTML = "<tr><td colspan='6'>Error loading payments</td></tr>";
+            document.getElementById("allPaymentsTable").innerHTML =
+                "<tr><td colspan='6'>Error loading payments</td></tr>";
         });
 }
+
 
 function renderPayments(data) {
     let rows = "";
@@ -270,10 +574,36 @@ function applyFilters() {
         <textarea name="description" rows="3" required></textarea>
 
         <label>Price:</label>
+        <div style="
+    margin: 6px 0 10px;
+    padding: 8px 10px;
+    background: #fff7ed;
+    border-left: 4px solid #f97316;
+    color: #9a3412;
+    font-size: 0.9rem;
+    border-radius: 4px;
+">
+    ⚠️ Please enter the Price amount carefully.
+    Once saved, the Price **cannot be changed**.
+    To modify it later, the entire order must be deleted.
+</div>
         <input type="number" name="price" step="0.01" required>
 
-        <label>Advance:</label>
-        <input type="number" name="advance" step="0.01" required>
+<label>Advance:</label>
+<div style="
+    margin: 6px 0 10px;
+    padding: 8px 10px;
+    background: #fff7ed;
+    border-left: 4px solid #f97316;
+    color: #9a3412;
+    font-size: 0.9rem;
+    border-radius: 4px;
+">
+    ⚠️ Please enter the advance amount carefully.
+    Once saved, the advance **cannot be changed**.
+    To modify it later, the entire order must be deleted.
+</div>
+<input type="number" name="advance" step="0.01" required>
 
         <label>Due Date:</label>
         <input type="date" name="dueDate" required>
@@ -303,6 +633,9 @@ function applyFilters() {
     <!-- Form -->
     <form id="editOrderForm" method="post" enctype="multipart/form-data" class="form-fields">
       <input type="hidden" name="id" id="editOrderId">
+      <input type="hidden" name="balance" id="editBalance">
+      <!-- <input type="hidden" name="advance" id="editAdvanceHidden"> -->
+
 
       <label for="editCustomerName">Customer Name:</label>
       <input type="text" name="customerName" id="editCustomerName" required>
@@ -313,11 +646,26 @@ function applyFilters() {
       <label for="editDescription">Description:</label>
       <textarea name="description" id="editDescription" rows="4" required></textarea>
 
-      <label for="editPrice">Price:</label>
-      <input type="number" name="price" id="editPrice" step="0.01" required>
+<div class="readonly-row warning-row">
+    <label class="price-label">Price:</label>
+    <span id="viewPrice" class="value-text">₹0</span>
 
-      <label for="editAdvance">Advance:</label>
-      <input type="number" name="advance" id="editAdvance" step="0.01" required>
+    <span class="divider">|</span>
+
+    <label class="advance-label">Advance:</label>
+    <span id="viewAdvance" class="value-text">₹0</span>
+
+    <span class="edit-warning">
+        To edit these, delete the order and re-add it
+    </span>
+</div>
+
+
+
+
+      <label for="editOrderedDate">Ordered Date:</label>
+      <input type="date" name="createdAt" id="editOrderedDate" required>
+
 
       <label for="editDueDate">Due Date:</label>
       <input type="date" name="dueDate" id="editDueDate" required>
@@ -424,6 +772,7 @@ function searchOrders() {
                </form>`
             : `<span class="status-pill status-delivered">✔ Delivered</span>`
         }
+        <span style="margin-left:10px;color:#6b7280;font-weight:600;">Ordered: ${order.createdAt ? escapeHtml(order.createdAt) : '-'}</span>
         <span style="margin-left:10px;color:#6b7280;font-weight:600;">Due: ${order.dueDate ? escapeHtml(order.dueDate) : '-'}</span>
     </div>
 
@@ -478,6 +827,46 @@ function resetFilters() {
 document.addEventListener("DOMContentLoaded", searchOrders);
 </script>
 
+<script>
+function openDashboardModal() {
+    document.getElementById("dashboardModal").classList.add("show");
+
+    // Load status + gross totals
+    loadDashboardSummary();
+
+    // Load today's earnings (important for modal)
+    setTimeout(() => {
+        const today = new Date().toISOString().split("T")[0];
+        const dateInput = document.getElementById("earningsDate");
+        if (dateInput) {
+            dateInput.value = today;
+            loadEarningsByDate(today);
+        }
+    }, 200);
+}
+
+function closeDashboardModal() {
+    document.getElementById("dashboardModal").classList.remove("show");
+}
+
+function loadDashboardSummary() {
+    fetch("/dashboard/api/summary")
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById("dashPending").textContent = data.pending ?? "-";
+            document.getElementById("dashProgress").textContent = data.inProgress ?? "-";
+            document.getElementById("dashCompleted").textContent = data.completed ?? "-";
+            document.getElementById("dashDelivered").textContent = data.delivered ?? "-";
+
+            document.getElementById("dashTotalOrders").textContent = data.totalOrders ?? "-";
+            document.getElementById("dashTotalReceived").textContent =
+                data.totalReceived != null ? "₹" + data.totalReceived : "-";
+            document.getElementById("dashTotalPending").textContent =
+                data.totalPending != null ? "₹" + data.totalPending : "-";
+        })
+        .catch(err => console.error("Dashboard load error", err));
+}
+</script>
 
 
 
@@ -598,10 +987,16 @@ function openEditOrderModal(order) {
     document.getElementById("editCustomerName").value = order.customerName;
     document.getElementById("editContactInfo").value = order.contactInfo;
     document.getElementById("editDescription").value = order.description;
-    document.getElementById("editPrice").value = order.price;
-    document.getElementById("editAdvance").value = order.advance;
+    document.getElementById("editOrderedDate").value = order.createdAt ? order.createdAt : "";
     document.getElementById("editDueDate").value = order.dueDate;
     document.getElementById("editStatus").value = order.status;
+    document.getElementById("editBalance").value = order.balance;
+    document.getElementById("viewPrice").textContent =
+    "₹" + (order.price ?? 0);
+
+document.getElementById("viewAdvance").textContent =
+    "₹" + (order.advance ?? 0);
+
 
     // Current image
     if (order.referenceImage) {

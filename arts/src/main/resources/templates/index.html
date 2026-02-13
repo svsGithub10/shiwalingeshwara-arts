@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title th:text="${title}">Shivaligeshwara Arts</title>
+    <title th:text="${title}">Shivalingeshwara Arts</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
@@ -10,11 +10,11 @@
         <h1 th:text="${title}"></h1>
     </header>
     <nav>
-        <a href="/">Home</a> | 
-        <a href="/portfolio">Portfolio</a> | 
-        <a href="/shop">Shop (Coming Soon)</a> |
-        <a href="/orders">Admin</a> 
-        <a href="/dashboard">Dashboard</a>
+        <a class="btn link" href="/">Home</a> | 
+        <a class="btn link" href="/portfolio">Portfolio</a> | 
+        <a class="btn link" href="#" onclick="alert('This feature not yet avialable') ">Shop (Coming Soon)</a> |
+        <a class="btn link" href="/orders">Admin</a> 
+        <!-- <a href="/dashboard">Dashboard</a> -->
     </nav>
     <main>
         <p>This is your Shivaligeshwara Arts application running on localhost 🎨</p>

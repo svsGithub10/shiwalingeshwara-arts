@@ -23,4 +23,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findByCreatedAt(LocalDate date);
     List<Order> findByCreatedAtBetween(LocalDate start, LocalDate end);
 
+    
+
 }

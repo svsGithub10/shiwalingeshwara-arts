@@ -94,46 +94,45 @@ public String editOrder(@PathVariable("id") Long id, Model model) {
 @PostMapping("/update/{id}")
 public String updateOrder(@PathVariable Long id,
                           @ModelAttribute Order order,
-                          @RequestParam(value = "file", required = false) MultipartFile file) throws IOException {
+                          @RequestParam(value = "file", required = false) MultipartFile file)
+        throws IOException {
 
     Order existing = orderRepository.findById(id)
-        .orElseThrow(() -> new IllegalArgumentException("Invalid order Id:" + id));
+        .orElseThrow(() -> new IllegalArgumentException("Invalid order Id: " + id));
 
-    // ✅ Handle file upload
+    // ✅ Handle file upload (unchanged)
     if (file != null && !file.isEmpty()) {
         String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
         Path uploadPath = Paths.get("C:/shivalingeshwara-arts/uploads/");
 
-        // create directory if not exists
         if (!Files.exists(uploadPath)) {
             Files.createDirectories(uploadPath);
         }
 
-        // copy file
-        Files.copy(file.getInputStream(), uploadPath.resolve(fileName), StandardCopyOption.REPLACE_EXISTING);
+        Files.copy(file.getInputStream(),
+                   uploadPath.resolve(fileName),
+                   StandardCopyOption.REPLACE_EXISTING);
 
-        // update reference image path (only fileName, not full path, so URL works)
         existing.setReferenceImage(fileName);
     }
 
-    // update other fields
+    // ✅ Update ONLY non-financial editable fields
     existing.setCustomerName(order.getCustomerName());
     existing.setContactInfo(order.getContactInfo());
     existing.setDescription(order.getDescription());
-    existing.setPrice(order.getPrice());
-    existing.setAdvance(order.getAdvance());
+    // existing.setPrice(order.getPrice());
     existing.setDueDate(order.getDueDate());
     existing.setStatus(order.getStatus());
+    existing.setCreatedAt(order.getCreatedAt()); // Ordered Date (new field)
 
-    // recalc balance
-    if (existing.getPrice() != null && existing.getAdvance() != null) {
-        existing.setBalance(existing.getPrice() - existing.getAdvance());
-    }
+    // ❌ DO NOT TOUCH:
+    // existing.setAdvance(...)
+    // existing.setBalance(...)
+    // payments remain intact
 
     orderRepository.save(existing);
     return "redirect:/orders";
 }
-
 @PostMapping("/delete/{id}")
 public String deleteOrder(@PathVariable("id") Long id) {
     Order order = orderRepository.findById(id)
@@ -286,7 +285,11 @@ public List<Order> searchOrders(
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate
 ) {
-    List<Order> orders = orderRepository.findAll();
+    List<Order> orders = orderRepository.findAll()
+        .stream()
+        .sorted((a, b) -> b.getId().compareTo(a.getId())) // DESC
+        .toList();
+
 
     return orders.stream()
             .filter(o -> id == null || o.getId().equals(id))

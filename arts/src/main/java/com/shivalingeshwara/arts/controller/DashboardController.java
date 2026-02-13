@@ -29,6 +29,9 @@ public class DashboardController {
     @Autowired
     private OrderService orderService;
 
+
+
+
 @GetMapping
 public String dashboard(Model model) {
     // Example stats (replace with queries)
@@ -79,6 +82,27 @@ public ResponseEntity<Map<String, Object>> getYearEarnings(@RequestParam int yea
     result.put("pending", orderService.getYearPendingAmount(year));
     return ResponseEntity.ok(result);
 }
+
+@GetMapping("/api/summary")
+@ResponseBody
+public Map<String, Object> getDashboardSummary() {
+
+    Map<String, Object> map = new HashMap<>();
+
+    // Status counts
+    map.put("pending", orderRepository.countByStatus("Pending"));
+    map.put("inProgress", orderRepository.countByStatus("In Progress"));
+    map.put("completed", orderRepository.countByStatus("Completed"));
+    map.put("delivered", orderRepository.countByStatus("Delivered"));
+
+    // Gross totals
+    map.put("totalOrders", orderRepository.count());
+    map.put("totalReceived", orderService.getTotalRevenueReceived());
+    map.put("totalPending", orderService.getTotalPendingAmount());
+
+    return map;
+}
+
 
 
 

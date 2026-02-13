@@ -176,6 +176,8 @@ public double getYearPendingAmount(int year) {
                               .mapToDouble(Order::getBalance)
                               .sum();
     }
+
+    
 }
 
 
