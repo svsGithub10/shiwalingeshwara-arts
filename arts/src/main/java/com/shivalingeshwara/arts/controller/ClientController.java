@@ -254,5 +254,40 @@ public List<ClientPayment> getClientPayments(@PathVariable Long clientId) {
     return clientService.getClientPayments(clientId);
 }
 
+@GetMapping("/dashboard/summary")
+@ResponseBody
+public Map<String, Object> getClientDashboardSummary() {
+
+    Map<String, Object> map = new HashMap<>();
+
+    map.put("totalClients", clientService.getTotalClients());
+    map.put("activeClients", clientService.getActiveClients());
+    map.put("disabledClients", clientService.getDisabledClients());
+    map.put("clientsWithBalance", clientService.getClientsWithBalance());
+
+    map.put("totalOrders", clientService.getOrderCountAll()); // we add next
+    map.put("totalRevenue", clientService.getTotalPaidAll());
+    map.put("totalPending", clientService.getGrossPending());
+
+    return map;
+}
+
+@GetMapping("/dashboard/month")
+@ResponseBody
+public Map<String, Object> getClientMonthDashboard(
+        @RequestParam int year,
+        @RequestParam int month) {
+
+    return clientService.getMonthDashboard(year, month);
+}
+
+@GetMapping("/dashboard/year")
+@ResponseBody
+public Map<String, Object> getClientYearDashboard(
+        @RequestParam int year) {
+
+    return clientService.getYearDashboard(year);
+}
+
 
 }

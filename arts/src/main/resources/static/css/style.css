@@ -248,6 +248,8 @@ nav a {
             gap:14px;
         }
 
+        
+
         /* Unique card look */
         .status-card{
             border-radius:12px;
@@ -726,9 +728,38 @@ footer {
     background: #f3f4f6;
 }
 
-.client-card.disabled {
-    opacity: 0.6;
-    filter: grayscale(50%);
+
+
+/* Base client card (if not already styled) */
+.client-card{
+    background:#fff;
+    border-radius:12px;
+    padding:16px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.05);
+    transition:all 0.25s ease;
+    border:1px solid #eef2f6;
+}
+
+/* 🔥 Disabled state */
+.client-card[data-status="disabled"]{
+    opacity:0.55;
+    filter: grayscale(60%);
+    pointer-events:auto; /* keep clickable */
+}
+
+/* Optional: add subtle disabled badge */
+.client-card[data-status="disabled"]::after{
+    content:"DISABLED";
+    position:absolute;
+    top:10px;
+    right:12px;
+    font-size:10px;
+    font-weight:700;
+    background:#ef4444;
+    color:#fff;
+    padding:4px 6px;
+    border-radius:6px;
+    letter-spacing:0.05em;
 }
 
 
@@ -761,3 +792,52 @@ footer {
     background: #28a745;
 }
 
+/* ===== CLIENT ORDERS LIST ONLY ===== */
+
+#clientOrdersList .order-card{
+    background:#ffffff;
+    border-radius:12px;
+    padding:16px 18px;
+    border:1px solid #eef2f7;
+    box-shadow:0 4px 12px rgba(0,0,0,0.05);
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+}
+
+#clientOrdersList .order-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+#clientOrdersList .order-header b{
+    font-size:1.05rem;
+    font-weight:800;
+    color:#0f172a;
+}
+
+#clientOrdersList .order-price{
+    font-size:1.15rem;
+    font-weight:800;
+    color:#16a34a;
+}
+
+#clientOrdersList .order-footer{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+#clientOrdersList .order-dates{
+    display:flex;
+    gap:18px;
+    font-size:0.9rem;
+    color:#6b7280;
+}
+
+#clientOrdersList .order-actions{
+    min-width: 200px;
+    display:flex;
+    gap:8px;
+}

@@ -8,6 +8,8 @@ import com.shivalingeshwara.arts.repository.ClientPaymentRepository;
 import com.shivalingeshwara.arts.repository.ClientRepository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -178,6 +180,117 @@ public void deleteClient(Long id) {
 
     // 3️⃣ Delete client
     clientRepository.deleteById(id);
+}
+
+// ================= CLIENT DASHBOARD =================
+
+// 🔹 Total Clients
+public long getTotalClients() {
+    return clientRepository.count();
+}
+
+// 🔹 Active Clients
+public long getActiveClients() {
+    return clientRepository.countByActiveTrue();
+}
+
+// 🔹 Disabled Clients
+public long getDisabledClients() {
+    return clientRepository.countByActiveFalse();
+}
+
+// 🔹 Clients With Outstanding Balance
+public long getClientsWithBalance() {
+    return clientRepository.countByTotalBalanceGreaterThan(0.0);
+}
+
+// 🔹 Gross Totals
+public double getGrossRevenue() {
+    Double total = clientPaymentRepository.getTotalPaidByClient(null);
+    return total != null ? total : 0.0;
+}
+
+public double getGrossPending() {
+    Double total = clientOrderRepository.getTotalBilled();
+    Double paid = clientPaymentRepository.getTotalPaid();
+
+    double billed = total != null ? total : 0.0;
+    double received = paid != null ? paid : 0.0;
+
+    return billed - received;
+}
+
+public long getOrderCountAll() {
+    return clientOrderRepository.count();
+}
+
+public double getTotalPaidAll() {
+    Double total = clientPaymentRepository.getTotalPaid();
+    return total != null ? total : 0.0;
+}
+
+public Map<String, Object> getMonthDashboard(int year, int month) {
+
+    Map<String, Object> map = new HashMap<>();
+
+    LocalDate start = LocalDate.of(year, month, 1);
+    LocalDate end = start.withDayOfMonth(start.lengthOfMonth());
+
+    // Orders in month
+    List<ClientOrder> orders =
+            clientOrderRepository.findByOrderedDateBetween(start, end);
+
+    double totalBilled = orders.stream()
+            .mapToDouble(o -> o.getPrice() != null ? o.getPrice() : 0.0)
+            .sum();
+
+    long totalOrders = orders.size();
+
+    // Payments in month
+    LocalDateTime startDateTime = start.atStartOfDay();
+    LocalDateTime endDateTime = end.atTime(23,59,59);
+
+    Double revenue = clientPaymentRepository
+            .sumPaymentsBetween(startDateTime, endDateTime);
+
+    double totalRevenue = revenue != null ? revenue : 0.0;
+
+    map.put("orders", totalOrders);
+    map.put("revenue", totalRevenue);
+    map.put("pending", totalBilled - totalRevenue);
+
+    return map;
+}
+
+public Map<String, Object> getYearDashboard(int year) {
+
+    Map<String, Object> map = new HashMap<>();
+
+    LocalDate start = LocalDate.of(year, 1, 1);
+    LocalDate end = LocalDate.of(year, 12, 31);
+
+    List<ClientOrder> orders =
+            clientOrderRepository.findByOrderedDateBetween(start, end);
+
+    double totalBilled = orders.stream()
+            .mapToDouble(o -> o.getPrice() != null ? o.getPrice() : 0.0)
+            .sum();
+
+    long totalOrders = orders.size();
+
+    LocalDateTime startDateTime = start.atStartOfDay();
+    LocalDateTime endDateTime = end.atTime(23,59,59);
+
+    Double revenue = clientPaymentRepository
+            .sumPaymentsBetween(startDateTime, endDateTime);
+
+    double totalRevenue = revenue != null ? revenue : 0.0;
+
+    map.put("orders", totalOrders);
+    map.put("revenue", totalRevenue);
+    map.put("pending", totalBilled - totalRevenue);
+
+    return map;
 }
 
 

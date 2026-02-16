@@ -4,6 +4,7 @@ import com.shivalingeshwara.arts.model.ClientOrder;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public interface ClientOrderRepository extends JpaRepository<ClientOrder, Long> {
@@ -16,5 +17,11 @@ public interface ClientOrderRepository extends JpaRepository<ClientOrder, Long> 
     long countByClientId(Long clientId);
 
     boolean existsByClientId(Long clientId);
+
+    @Query("SELECT COALESCE(SUM(o.price),0) FROM ClientOrder o")
+Double getTotalBilled();
+
+List<ClientOrder> findByOrderedDateBetween(LocalDate start, LocalDate end);
+
 
 }
