@@ -1,27 +1,617 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" >
 <head>
-    <title th:text="${title}">Shivalingeshwara Arts</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Shivalingeshwara Arts - Innovative artistic solutions using materials, handcrafting, painting, and digital designs.">
+    <title>Shivalingeshwara Arts - Artistic Solutions</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Roboto:wght@300;400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
 </head>
 <body>
     <header>
-        <img src="/images/logo.png" alt="Logo" style="height:80px;">
-        <h1 th:text="${title}"></h1>
+<nav class="navbar">
+
+<div class="logo">
+<img th:src="@{/images/logo.png}">
+<span>Shivalingeshwara Arts</span>
+</div>
+
+
+<button onclick="toggleLanguage()" class="lang-btn" id="langBtn">
+ಕನ್ನಡ
+</button>
+
+
+<div class="menu-toggle" id="menuToggle">
+☰
+</div>
+
+<ul class="nav-links" id="navLinks">
+
+<li>
+<a href="/" 
+data-en="Home"
+data-kn="ಮುಖಪುಟ">
+Home
+</a>
+</li>
+
+<li>
+<a href="/gallery" 
+data-en="Products"
+data-kn="ಉತ್ಪನ್ನಗಳು">
+Products
+</a>
+</li>
+
+<li>
+<a href="#about" 
+data-en="About"
+data-kn="ನಮ್ಮ ಬಗ್ಗೆ">
+About
+</a>
+</li>
+
+<li>
+<a href="#reviews" 
+data-en="Reviews"
+data-kn="ಗ್ರಾಹಕರ ಅಭಿಪ್ರಾಯಗಳು">
+Reviews
+</a>
+</li>
+
+<li>
+<a href="#contact" 
+data-en="Contact"
+data-kn="ಸಂಪರ್ಕಿಸಿ">
+Contact
+</a>
+</li>
+
+<li>
+<button class="login-btn" onclick="openLogin()"
+data-en="Login"
+data-kn="ಲಾಗಿನ್">
+Login
+</button>
+</li>
+
+</ul>
+
+</nav>
     </header>
-    <nav>
-        <a class="btn link" href="/">Home</a> | 
-        <a class="btn link" href="/portfolio">Portfolio</a> | 
-        <a class="btn link" href="#" onclick="alert('This feature not yet avialable') ">Shop (Coming Soon)</a> |
-        <a class="btn link" href="/orders">Admin</a> 
-        <!-- <a href="/dashboard">Dashboard</a> -->
-    </nav>
-    <main>
-        <p>This is your Shivaligeshwara Arts application running on localhost 🎨</p>
-    </main>
-    <!-- Footer -->
-    <footer>
-        © 2025 Shivalingeshwara Arts. All Rights Reserved.
-    </footer>
+
+    <section class="hero">
+
+        <div class="hero-content">
+            
+            <h1 
+            data-en="Crafting Art Into Reality"
+            data-kn="ಕಲೆಯನ್ನು ರೂಪಿಸುವ ಕೈಗಳು">
+                Crafting Art Into Reality
+            </h1>
+            
+<p 
+data-en="Custom wedding decorations, thermocol designs, event invitation card designs, flex/banners, engravings and creative artworks."
+data-kn="ಕಸ್ಟಮ್ ವಿವಾಹ ಅಲಂಕಾರಗಳು, ಥರ್ಮಕೋಲ್ ವಿನ್ಯಾಸಗಳು, ಕಾರ್ಯಕ್ರಮ ಆಹ್ವಾನ ಪತ್ರಿಕೆ ವಿನ್ಯಾಸಗಳು, ಫ್ಲೆಕ್ಸ್/ಬ್ಯಾನರ್‌ಗಳು, ಕೆತ್ತನೆ ಕೆಲಸಗಳು ಮತ್ತು ಸೃಜನಾತ್ಮಕ ಕಲಾಕೃತಿಗಳು.">
+Custom wedding decorations, thermocol designs,
+event invitation card designs, flex/banners, engravings and creative artworks.
+</p>
+
+<a href="gallery" class="primary-btn"
+data-en="Explore Designs"
+data-kn="ವಿನ್ಯಾಸಗಳನ್ನು ನೋಡಿ">
+Explore Designs
+</a>
+        
+        </div>
+
+    </section>
+
+    <section class="featured">
+
+    <h2 
+data-en="Featured Masterpiece"
+data-kn="ವಿಶೇಷ ಕಲಾಕೃತಿ">
+Featured Masterpiece
+</h2>
+
+    <div class="featured-container">
+
+    <img th:src="@{/images/featured.jpg}" alt="featured design">
+
+    <div class="featured-info">
+
+ <h3
+data-en="Custom Wedding Name Decor"
+data-kn="ಕಸ್ಟಮ್ ವಿವಾಹ ಹೆಸರು ಅಲಂಕಾರ">
+Custom Wedding Name Decor
+</h3>
+
+<p
+data-en="Beautiful laser-cut name/logo decorations perfect for wedding stages and special events."
+data-kn="ಸುಂದರ ಲೇಸರ್ ಕಟ್ ಮಾಡಿದ ಹೆಸರು ಅಥವಾ ಲೋಗೋ ಅಲಂಕಾರಗಳು — ವಿವಾಹ ವೇದಿಕೆಗಳು ಮತ್ತು ವಿಶೇಷ ಕಾರ್ಯಕ್ರಮಗಳಿಗೆ ಅತ್ಯಂತ ಸೂಕ್ತ.">
+Beautiful laser-cut name/logo decorations
+perfect for wedding stages and special events.
+</p>
+
+<span class="price"
+data-en="Starting from ₹850"
+data-kn="₹850 ರಿಂದ ಆರಂಭ">
+Starting from ₹850
+</span>
+
+<a href="gallery" class="primary-btn"
+data-en="Order Now"
+data-kn="ಈಗ ಆರ್ಡರ್ ಮಾಡಿ">
+Order Now
+</a>
+
+    </div>
+
+    </div>
+
+    </section>
+
+</section>
+
+<section class="showcase">
+
+<h2 
+data-en="Take A Look At These"
+data-kn="ಇವುಗಳನ್ನು ನೋಡಿ">
+Take A Look At These
+</h2>
+
+<div class="showcase-grid">
+
+<div class="show-card">
+<img src="images/wedding.jpg">
+<h3
+data-en="Wedding Decor"
+data-kn="ವಿವಾಹ ಅಲಂಕಾರ">
+Wedding Decor
+</h3>
+<p
+data-en="Custom glitter thermocol wedding names"
+data-kn="ಕಸ್ಟಮ್ ಗ್ಲಿಟ್ಟರ್ ಥರ್ಮಕೋಲ್ ವಿವಾಹ ಹೆಸರು ಅಲಂಕಾರಗಳು">
+Custom glitter thermocol wedding names
+</p>
+</div>
+
+<div class="show-card">
+<img src="images/kannada.jpg">
+<h3
+data-en="Event Invitation Cards / Pamphlets"
+data-kn="ಕಾರ್ಯಕ್ರಮ ಆಹ್ವಾನ ಪತ್ರಿಕೆಗಳು / ಪಾಂಪ್ಲೆಟ್‌ಗಳು">
+Event invitation card / pamphlet
+</h3>
+<p
+data-en="Customized and beautifully designed invitation cards with printing"
+data-kn="ಕಸ್ಟಮ್ ವಿನ್ಯಾಸದೊಂದಿಗೆ ಸುಂದರವಾಗಿ ಮುದ್ರಿತ ಆಹ್ವಾನ ಪತ್ರಿಕೆಗಳು">
+Customized and beautifully designed invitation cards with printing
+</p>
+</div>
+
+<div class="show-card">
+<img src="images/laser.jpg">
+<h3
+data-en="Laser Cut / Engrave Designs"
+data-kn="ಲೇಸರ್ ಕಟ್ / ಕೆತ್ತನೆ ವಿನ್ಯಾಸಗಳು">
+Laser Cut/engrave Designs
+</h3>
+<p
+data-en="MDF / Acrylic / PVC designs, Stone / Acrylic / Glass engraving"
+data-kn="ಎಂ.ಡಿ.ಎಫ್ / ಅಕ್ರಿಲಿಕ್ / ಪಿವಿಸಿ ವಿನ್ಯಾಸಗಳು, ಕಲ್ಲು / ಅಕ್ರಿಲಿಕ್ / ಗ್ಲಾಸ್ ಕೆತ್ತನೆ">
+MDF / Acrylic / PVC designs, Stone / acrylic / glass engraving
+</p>
+</div>
+
+<div class="show-card">
+<img src="images/engraving.jpg">
+<h3
+data-en="Flex / Banners / Photo Frames"
+data-kn="ಫ್ಲೆಕ್ಸ್ / ಬ್ಯಾನರ್‌ಗಳು / ಫೋಟೋ ಫ್ರೇಮ್‌ಗಳು">
+Flex / Banners / Photo frames
+</h3>
+<p
+data-en="Customized banners and flex with frames, old photo frame restoration and customization"
+data-kn="ಕಸ್ಟಮ್ ಬ್ಯಾನರ್‌ಗಳು ಮತ್ತು ಫ್ಲೆಕ್ಸ್ ಫ್ರೇಮ್‌ಗಳೊಂದಿಗೆ, ಹಳೆಯ ಫೋಟೋ ಫ್ರೇಮ್ ಮರುಸ್ಥಾಪನೆ ಮತ್ತು ಕಸ್ಟಮೈಸ್ ಸೇವೆಗಳು">
+Customized banners/flex with frames, old photo frames /photo restoration and customizable
+</p>
+</div>
+
+<div class="show-card">
+<img src="images/signboard.jpg">
+<h3
+data-en="Sign Boards"
+data-kn="ಸೈನ್ ಬೋರ್ಡ್‌ಗಳು">
+Sign Boards
+</h3>
+<p
+data-en="Glow sign boards and shop boards"
+data-kn="ಗ್ಲೋ ಸೈನ್ ಬೋರ್ಡ್‌ಗಳು ಮತ್ತು ಅಂಗಡಿ ಬೋರ್ಡ್‌ಗಳು">
+Glow sign boards and shop boards
+</p>
+</div>
+
+<div class="show-card">
+<img src="images/art.jpg">
+<h3
+data-en="Handcrafted Art"
+data-kn="ಕೈತೋಟದ ಕಲಾಕೃತಿಗಳು">
+Handcrafted Art
+</h3>
+<p
+data-en="Drawings and creative works"
+data-kn="ಚಿತ್ರಗಳು ಮತ್ತು ಸೃಜನಾತ್ಮಕ ಕಲಾಕೃತಿಗಳು">
+Drawings and creative works
+</p>
+</div>
+
+</div>
+
+<a href="gallery" class="browse-btn"
+data-en="Browse More"
+data-kn="ಇನ್ನಷ್ಟು ನೋಡಿ">
+Browse More
+</a>
+
+</section>
+
+<section id="about">
+
+<h2 data-en="About Us" data-kn="ನಮ್ಮ ಬಗ್ಗೆ">About Us</h2>
+
+<div class="about-wrapper">
+
+<div class="about-block">
+
+<div class="about-img">
+<img src="https://t3.ftcdn.net/jpg/02/69/00/62/360_F_269006287_UOjqqlydfZpqlXB4tSxLZGXI0MXhHytb.jpg">
+</div>
+
+<div class="about-text">
+
+<h3
+data-en="25+ Years of Artistic Excellence"
+data-kn="25+ ವರ್ಷಗಳ ಕಲಾತ್ಮಕ ಅನುಭವ">
+25+ Years of Artistic Excellence
+</h3>
+
+<p
+data-en="Shivalingeshwara Arts has been creating artistic works in Haveri for more than 25 years. Founded by Veeranna Sheelavantar, our studio is known for wedding decorations, thermocol designs, laser cut works, engravings and creative artworks."
+data-kn="ಶಿವಲಿಂಗೇಶ್ವರ ಆರ್ಟ್ಸ್ ಹಾವೇರಿಯಲ್ಲಿ 25ಕ್ಕೂ ಹೆಚ್ಚು ವರ್ಷಗಳಿಂದ ಕಲಾತ್ಮಕ ಕೆಲಸಗಳನ್ನು ಮಾಡುತ್ತಿದೆ. ವೀರಣ್ಣ ಶೀಲವಂತರವರು ಸ್ಥಾಪಿಸಿದ ಈ ಸಂಸ್ಥೆ ವಿವಾಹ ಅಲಂಕಾರಗಳು, ಥರ್ಮಕೋಲ್ ವಿನ್ಯಾಸಗಳು, ಲೇಸರ್ ಕಟ್ ಕೆಲಸಗಳು ಮತ್ತು ವಿವಿಧ ಕಲಾಕೃತಿಗಳಿಗಾಗಿ ಪ್ರಸಿದ್ಧವಾಗಿದೆ.">
+Shivalingeshwara Arts has been creating artistic works in Haveri for more than 25 years. Founded by Veeranna Sheelavantar, our studio is known for wedding decorations, thermocol designs, laser cut works, engravings and creative artworks.
+</p>
+
+</div>
+
+</div>
+
+
+<div class="about-block reverse">
+
+<div class="about-img">
+<img src="https://savantwealth.com/wp-content/uploads/2025/07/family-legacy.jpg">
+</div>
+
+<div class="about-text">
+
+<h3
+data-en="A Family Legacy"
+data-kn="ಒಂದು ಕುಟುಂಬ ಪರಂಪರೆ">
+A Family Legacy
+</h3>
+
+<p
+data-en="The business was founded by Veeranna Sheelavantar and is now managed by his son Shantaveeresh Sheelavantar, continuing the tradition of quality craftsmanship and creativity."
+data-kn="ಈ ಸಂಸ್ಥೆಯನ್ನು ವೀರಣ್ಣ ಶೀಲವಂತರವರು ಸ್ಥಾಪಿಸಿದ್ದು, ಈಗ ಅವರ ಪುತ್ರ ಶಾಂತವೀರೇಶ್ ಶೀಲವಂತರವರು ಅದನ್ನು ಯಶಸ್ವಿಯಾಗಿ ನಡೆಸುತ್ತಿದ್ದಾರೆ.">
+The business was founded by Veeranna Sheelavantar and is now managed by his son Shantaveeresh Sheelavantar, continuing the tradition of quality craftsmanship and creativity.
+</p>
+
+</div>
+
+</div>
+
+
+<div class="about-block">
+
+<div class="about-img">
+<img src="https://img.freepik.com/premium-vector/boxes-hands-courier-with-truck-background-online-delivery-service_829964-44.jpg">
+</div>
+
+<div class="about-text">
+
+<h3
+data-en="Serving Many Places"
+data-kn="ಅನೇಕ ಸ್ಥಳಗಳಿಗೆ ಸೇವೆ">
+Serving Many Places
+</h3>
+
+<p
+data-en="Our workshop is located at Hukkeri Math Old Complex, Haveri – 581110. We deliver orders to many towns and districts using courier services and bus transport."
+data-kn="ನಮ್ಮ ವರ್ಕ್‌ಶಾಪ್ ಹಾವೇರಿ – 581110 ರ ಹುಕ್ಕೇರಿ ಮಠ ಓಲ್ಡ್ ಕಾಂಪ್ಲೆಕ್ಸ್‌ನಲ್ಲಿ ಇದೆ. ನಾವು ಕೂರಿಯರ್ ಮತ್ತು ಬಸ್ ಸಾರಿಗೆಯ ಮೂಲಕ ಅನೇಕ ಪಟ್ಟಣಗಳಿಗೆ ಮತ್ತು ಜಿಲ್ಲೆಗಳಿಗೆ ಆರ್ಡರ್‌ಗಳನ್ನು ಕಳುಹಿಸುತ್ತೇವೆ.">
+Our workshop is located at Hukkeri Math Old Complex, Haveri – 581110. We deliver orders to many towns and districts using courier services and bus transport.
+</p>
+
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+<section id="reviews">
+
+<h2 
+data-en="What Our Customers Say"
+data-kn="ನಮ್ಮ ಗ್ರಾಹಕರ ಅಭಿಪ್ರಾಯಗಳು">
+What Our Customers Say
+</h2>
+
+<div class="reviews">
+
+<div class="review-card">
+★★★★★
+<p
+data-en="Amazing wedding decor work!"
+data-kn="ಅದ್ಭುತ ವಿವಾಹ ಅಲಂಕಾರ ಕೆಲಸ!">
+Amazing wedding decor work!
+</p>
+<span
+data-en="- Customer"
+data-kn="- ಗ್ರಾಹಕ">
+- Customer
+</span>
+</div>
+
+<div class="review-card">
+★★★★★
+<p
+data-en="Beautiful Kannada lettering design."
+data-kn="ಸುಂದರ ಕನ್ನಡ ಲೆಟರಿಂಗ್ ವಿನ್ಯಾಸ.">
+Beautiful Kannada lettering design.
+</p>
+<span
+data-en="- Client"
+data-kn="- ಗ್ರಾಹಕ">
+- Client
+</span>
+</div>
+
+<div class="review-card">
+★★★★★
+<p
+data-en="Professional engraving work."
+data-kn="ಪ್ರೊಫೆಷನಲ್ ಕೆತ್ತನೆ ಕೆಲಸ.">
+Professional engraving work.
+</p>
+<span
+data-en="- Customer"
+data-kn="- ಗ್ರಾಹಕ">
+- Customer
+</span>
+</div>
+
+</div>
+
+</section>
+
+
+<section id="contact">
+
+<div class="contact-container">
+
+<h2
+data-en="Contact Us"
+data-kn="ನಮ್ಮನ್ನು ಸಂಪರ್ಕಿಸಿ">
+Contact Us
+</h2>
+
+<p
+data-en="Have a design idea or need a custom artwork? Send us your details and we will reach out."
+data-kn="ನಿಮಗೆ ಯಾವುದೇ ವಿನ್ಯಾಸದ ಆಲೋಚನೆ ಇದೆಯೇ ಅಥವಾ ಕಸ್ಟಮ್ ಕಲಾಕೃತಿ ಬೇಕೇ? ನಿಮ್ಮ ವಿವರಗಳನ್ನು ಕಳುಹಿಸಿ, ನಾವು ನಿಮ್ಮನ್ನು ಸಂಪರ್ಕಿಸುತ್ತೇವೆ.">
+Have a design idea or need a custom artwork?  
+Send us your details and we will reach out.
+</p>
+
+<form class="contact-form">
+
+<input type="text" placeholder="Your Name"
+data-en="Your Name"
+data-kn="ನಿಮ್ಮ ಹೆಸರು"
+required>
+
+<input type="email" placeholder="Your Email"
+data-en="Your Email"
+data-kn="ನಿಮ್ಮ ಇಮೇಲ್"
+required>
+
+<textarea placeholder="Describe your idea..." rows="5"
+data-en="Describe your idea..."
+data-kn="ನಿಮ್ಮ ಆಲೋಚನೆಯನ್ನು ವಿವರಿಸಿ...">
+</textarea>
+
+<button type="submit" class="primary-btn"
+data-en="Send Message"
+data-kn="ಸಂದೇಶ ಕಳುಹಿಸಿ">
+Send Message
+</button>
+
+</form>
+
+</div>
+
+</section>
+
+    <div id="loginModal" class="login-modal">
+
+<div class="login-box">
+
+<!-- <span class="close-btn" onclick="closeLogin()">×</span> -->
+
+<h2
+data-en="Client Login"
+data-kn="ಗ್ರಾಹಕ ಲಾಗಿನ್">
+Client Login
+</h2>
+
+<p
+data-en="Access your orders and artwork requests"
+data-kn="ನಿಮ್ಮ ಆರ್ಡರ್‌ಗಳು ಮತ್ತು ಕಲಾಕೃತಿ ವಿನಂತಿಗಳನ್ನು ನೋಡಲು ಲಾಗಿನ್ ಮಾಡಿ">
+Access your orders and artwork requests
+</p>
+
+<form id="loginForm">
+
+<input type="email"
+id="email"
+placeholder="Email Address"
+data-en="Email Address"
+data-kn="ಇಮೇಲ್ ವಿಳಾಸ"
+required>
+
+<p id="loginMessage" style="margin:6px 0;color:#666;"></p>
+
+<input type="password"
+id="password"
+placeholder="Password"
+data-en="Password"
+data-kn="ಪಾಸ್‌ವರ್ಡ್"
+required disabled>
+
+<button type="submit" class="primary-btn"
+data-en="Login"
+data-kn="ಲಾಗಿನ್ ಮಾಡಿ">
+Login
+</button>
+
+</form>
+
+<p class="signup-text">
+<span
+data-en="New client?"
+data-kn="ಹೊಸ ಗ್ರಾಹಕರೇ?">
+New client?
+</span>
+
+<a href="#"
+data-en="Create Account"
+data-kn="ಖಾತೆ ರಚಿಸಿ">
+Create Account
+</a>
+</p>
+
+</div>
+
+</div>
+
+<!-- FOOTER -->
+
+<footer>
+
+<div class="footer-grid">
+
+<div>
+
+<h3
+data-en="Shivalingeshwara Arts"
+data-kn="ಶಿವಲಿಂಗೇಶ್ವರ ಆರ್ಟ್ಸ್">
+Shivalingeshwara Arts
+</h3>
+
+<p
+data-en="Creative artistic solutions for weddings, decorations, sign boards and custom designs."
+data-kn="ವಿವಾಹ ಅಲಂಕಾರಗಳು, ಸೈನ್ ಬೋರ್ಡ್‌ಗಳು ಮತ್ತು ಕಸ್ಟಮ್ ವಿನ್ಯಾಸಗಳಿಗಾಗಿ ಸೃಜನಾತ್ಮಕ ಕಲಾತ್ಮಕ ಪರಿಹಾರಗಳು.">
+Creative artistic solutions for weddings,
+decorations and sign boards.
+</p>
+
+</div>
+
+
+<div>
+
+<h4
+data-en="Address"
+data-kn="ವಿಳಾಸ">
+Address
+</h4>
+
+<p
+data-en="Hukkeri Math Old Complex, Haveri - 581110"
+data-kn="ಹುಕ್ಕೇರಿ ಮಠ ಓಲ್ಡ್ ಕಾಂಪ್ಲೆಕ್ಸ್, ಹಾವೇರಿ - 581110">
+Hukkeri Math Old Complex, Haveri - 581110
+</p>
+
+<p
+data-en="Serving customers across many towns and districts via courier and bus transport."
+data-kn="ಕೂರಿಯರ್ ಮತ್ತು ಬಸ್ ಸಾರಿಗೆಯ ಮೂಲಕ ಅನೇಕ ಪಟ್ಟಣಗಳು ಮತ್ತು ಜಿಲ್ಲೆಗಳಿಗೆ ಸೇವೆ ನೀಡಲಾಗುತ್ತದೆ.">
+Serving customers across many towns and districts.
+</p>
+
+</div>
+
+
+<div>
+
+<h4
+data-en="Contact"
+data-kn="ಸಂಪರ್ಕ">
+Contact
+</h4>
+
+<p
+data-en="Owner: Veeranna Sheelavantar"
+data-kn="ಮಾಲೀಕರು: ವೀರಣ್ಣ ಶೀಲವಂತರ">
+Owner: Veeranna Sheelavantar
+</p>
+
+<p>
+📞 9448231988
+</p>
+
+<p>
+✉ saarts2010@gmail.com
+</p>
+
+</div>
+
+
+<div>
+
+<h4
+data-en="Follow Us"
+data-kn="ನಮ್ಮನ್ನು ಅನುಸರಿಸಿ">
+Follow Us
+</h4>
+
+<div class="social-links">
+
+<a href="#"><i class="fab fa-instagram"></i></a>
+<a href="#"><i class="fab fa-facebook"></i></a>
+<a href="#"><i class="fab fa-youtube"></i></a>
+<a href="#"><i class="fab fa-x-twitter"></i></a>
+
+</div>
+
+</div>
+
+</div>
+
+<p class="copyright"
+data-en="© 2026 Shivalingeshwara Arts. All Rights Reserved."
+data-kn="© 2026 ಶಿವಲಿಂಗೇಶ್ವರ ಆರ್ಟ್ಸ್. ಎಲ್ಲಾ ಹಕ್ಕುಗಳು ಕಾಯ್ದಿರಿಸಲಾಗಿದೆ.">
+© 2026 Shivalingeshwara Arts
+</p>
+
+</footer>
+
+    <script th:src="@{/js/script.js}"></script>
+
 </body>
 </html>

@@ -1,70 +1,82 @@
 package com.shivalingeshwara.arts.model;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.persistence.*;
 
 @Entity
-@Table(name = "orders")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Table(name="orders")
 public class Order {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String customerName;
-    private String contactInfo;
+    @Column(name="client_id")
+    private Long clientId;
 
-    @Column(length = 1000)
-    private String description;
+    @Column(name="work_type")
+    private String workType;
+
+    private String materials;
+
+    @Column(name="top_layer")
+    private String topLayer;
 
     private Double price;
-    private Double advance;
-    private Double balance;
 
-    private LocalDate createdAt;
-    private LocalDate dueDate;
+    @Column(name="advance_paid")
+    private Double advancePaid;
 
-    private String status; // Pending / In Progress / Completed / Delivered
+    private String status;
 
-    // ✅ New field: reference image (nullable)
-    private String referenceImage;
+    @Column(name="dxf_file")
+    private String dxfFile;
 
-    // ✅ Link to payments (with cascade + orphan removal)
-    @Builder.Default
-// Order.java
-@OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
-@JsonManagedReference
-private List<Payment> payments = new ArrayList<>();
+    @Column(name="result_image")
+    private String resultImage;
 
-    @PrePersist
-    public void onCreate() {
-        this.createdAt = LocalDate.now();
-        if (this.balance == null && this.price != null && this.advance != null) {
-            this.balance = this.price - this.advance;
-        }
-        if (this.status == null) {
-            this.status = "Pending";
-        }
-    }
+    @Column(name="created_at")
+    private String createdAt;
+
+    public Order(){}
+
+    public Long getId(){ return id; }
+
+    public Long getClientId(){ return clientId; }
+
+    public String getWorkType(){ return workType; }
+
+    public String getMaterials(){ return materials; }
+
+    public String getTopLayer(){ return topLayer; }
+
+    public Double getPrice(){ return price; }
+
+    public Double getAdvancePaid(){ return advancePaid; }
+
+    public String getStatus(){ return status; }
+
+    public String getDxfFile(){ return dxfFile; }
+
+    public String getResultImage(){ return resultImage; }
+
+    public void setId(Long id){ this.id=id; }
+
+    public void setClientId(Long clientId){ this.clientId=clientId; }
+
+    public void setWorkType(String workType){ this.workType=workType; }
+
+    public void setMaterials(String materials){ this.materials=materials; }
+
+    public void setTopLayer(String topLayer){ this.topLayer=topLayer; }
+
+    public void setPrice(Double price){ this.price=price; }
+
+    public void setAdvancePaid(Double advancePaid){ this.advancePaid=advancePaid; }
+
+    public void setStatus(String status){ this.status=status; }
+
+    public void setDxfFile(String dxfFile){ this.dxfFile=dxfFile; }
+
+    public void setResultImage(String resultImage){ this.resultImage=resultImage; }
+
 }

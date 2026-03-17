@@ -1,47 +1,35 @@
 package com.shivalingeshwara.arts.model;
 
-import java.time.LocalDateTime;
-
-import com.fasterxml.jackson.annotation.JsonBackReference;
-
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.persistence.*;
 
 @Entity
-@Table(name = "payments")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Table(name="payments")
 public class Payment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "order_id", nullable = false)
-    @JsonBackReference
-    private Order order;
+    @Column(name="order_id")
+    private Long orderId;
 
     private Double amount;
 
-    private String method; // Cash / UPI
+    @Column(name="payment_type")
+    private String paymentType;
 
-    private LocalDateTime paymentDate;
+    @Column(name="paid_at")
+    private String paidAt;
 
-    @PrePersist
-    public void onCreate() {
-        this.paymentDate = LocalDateTime.now();
-    }
+    public Payment(){}
+
+    public Long getId(){ return id; }
+    public Long getOrderId(){ return orderId; }
+    public Double getAmount(){ return amount; }
+    public String getPaymentType(){ return paymentType; }
+
+    public void setId(Long id){ this.id=id; }
+    public void setOrderId(Long orderId){ this.orderId=orderId; }
+    public void setAmount(Double amount){ this.amount=amount; }
+    public void setPaymentType(String paymentType){ this.paymentType=paymentType; }
 }

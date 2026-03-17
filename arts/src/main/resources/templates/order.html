@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin Dashboard</title>
+
+<link rel="stylesheet" th:href="@{/css/admin.css}">
+
+</head>
+
+<body>
+
+<div class="admin-container">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+        <h2 class="logo">Shivalingeshwara Arts</h2>
+
+        <button onclick="loadPage('dashboard')">Dashboard</button>
+        <!-- <button onclick="loadPage('users')">Users/Customers</button> -->
+        <button onclick="loadPage('orders')">Orders</button>
+        <button onclick="loadPage('materials')">Materials</button>
+        <button onclick="loadPage('finance')">Finance</button>
+
+        <hr>
+
+        <button onclick="logout()">Logout</button>
+
+    </aside>
+
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+        <!-- THIS WAS MISSING -->
+        <div id="contentArea"></div>
+
+    </main>
+
+</div>
+
+
+<script src="/js/admin.js"></script>
+
+</body>
+</html>
