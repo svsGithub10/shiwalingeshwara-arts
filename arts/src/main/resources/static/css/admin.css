@@ -361,3 +361,37 @@ border-radius:6px;
 cursor:not-allowed;
 font-size:12px;
 }
+
+.filter-box{
+position:absolute;
+background:white;
+border:1px solid #ddd;
+padding:10px;
+border-radius:8px;
+box-shadow:0 5px 15px rgba(0,0,0,0.1);
+margin-top:5px;
+display:flex;
+flex-direction:column;
+gap:6px;
+z-index:100;
+}
+
+.filter-box label{
+font-size:13px;
+cursor:pointer;
+}
+
+.finance-grid{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:15px;
+margin-bottom:20px;
+}
+
+.card{
+background:white;
+padding:20px;
+border-radius:10px;
+box-shadow:0 5px 15px rgba(0,0,0,0.08);
+font-weight:600;
+}

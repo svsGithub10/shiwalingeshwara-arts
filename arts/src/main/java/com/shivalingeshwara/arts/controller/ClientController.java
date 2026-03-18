@@ -1,8 +1,10 @@
 package com.shivalingeshwara.arts.controller;
 
+import com.shivalingeshwara.arts.model.Order;
 import com.shivalingeshwara.arts.model.User;
+import com.shivalingeshwara.arts.repository.OrderRepository;
+import com.shivalingeshwara.arts.repository.PaymentRepository;
 import com.shivalingeshwara.arts.repository.UserRepository;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -91,38 +93,53 @@ public class ClientController {
     }
 
 
-    // DELETE CLIENT
-    @DeleteMapping("/{id}")
-    public Map<String,String> deleteClient(@PathVariable Long id){
+    @Autowired
+    private OrderRepository orderRepository;
 
-        Map<String,String> res = new HashMap<>();
+    @Autowired
+    private PaymentRepository paymentRepository;
+  
 
-        User u = userRepository.findById(id).orElse(null);
 
-        if(u == null){
 
-            res.put("status","error");
-            res.put("message","Client not found");
+@DeleteMapping("/{id}")
+public Map<String,String> deleteClient(@PathVariable Long id){
 
-            return res;
+    Map<String,String> res = new HashMap<>();
 
-        }
+    User u = userRepository.findById(id).orElse(null);
 
-        if(u.isSystemUser()){
-
-            res.put("status","error");
-            res.put("message","Cannot delete system user");
-
-            return res;
-
-        }
-
-        userRepository.deleteById(id);
-
-        res.put("status","success");
-
+    if(u == null){
+        res.put("status","error");
+        res.put("message","Client not found");
         return res;
+    }
+
+    if(u.isSystemUser()){
+        res.put("status","error");
+        res.put("message","Cannot delete system user");
+        return res;
+    }
+
+    // ✅ 1. GET ALL ORDERS OF CLIENT
+    List<Order> orders = orderRepository.findByClientId(id);
+
+    for(Order o : orders){
+
+        // ✅ 2. DELETE PAYMENTS OF EACH ORDER
+        paymentRepository.deleteByOrderId(o.getId());
 
     }
+
+    // ✅ 3. DELETE ORDERS
+    orderRepository.deleteAll(orders);
+
+    // ✅ 4. DELETE USER
+    userRepository.deleteById(id);
+
+    res.put("status","success");
+
+    return res;
+}
 
 }

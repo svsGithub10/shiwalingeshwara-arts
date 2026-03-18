@@ -60,6 +60,7 @@ public Order createOrder(
     o.setTopLayer(topLayer);
     o.setPrice(price);
     o.setAdvancePaid(advance);
+    o.setCreatedAt(java.time.LocalDateTime.now());
     o.setStatus("CREATED");
 
     // ✅ DXF upload

@@ -12,7 +12,16 @@ class="search"
 placeholder="Search client name or phone..."
 oninput="searchClients(this.value)">
 
-<button class="filter-btn">Filter</button>
+<button class="filter-btn" onclick="toggleFilter()">Filter</button>
+
+<div id="filterBox" class="filter-box" style="display:none">
+
+<label><input type="radio" name="filter" value="orders"> Most Orders</label>
+<label><input type="radio" name="filter" value="recent"> Recently Ordered</label>
+<label><input type="radio" name="filter" value="new"> Newly Added</label>
+<label><input type="radio" name="filter" value="name"> Name (A-Z)</label>
+
+</div>
 
 <button class="add-btn" onclick="openNewOrder()">
 + New Order
@@ -117,8 +126,8 @@ oninput="searchClients(this.value)">
 <label>Total Price</label>
 <input type="number" id="orderPrice">
 
-<label>Advance Paid</label>
-<input type="number" id="orderAdvance">
+<!-- <label>Paid</label> -->
+<input type="hidden" id="orderAdvance" value="0">
 
 <div class="modal-actions">
 
@@ -189,7 +198,7 @@ oninput="searchClients(this.value)">
 <label>Price</label>
 <input type="number" id="editPrice">
 
-<label>Advance</label>
+<label>Paid</label>
 <input type="number" id="editAdvance">
 
 <div class="modal-actions">

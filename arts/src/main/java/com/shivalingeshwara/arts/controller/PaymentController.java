@@ -32,6 +32,7 @@ public class PaymentController {
         p.setOrderId(orderId);
         p.setAmount(amount);
         p.setPaymentType(req.get("type"));
+        p.setPaidAt(java.time.LocalDateTime.now());
 
         paymentRepository.save(p);
 

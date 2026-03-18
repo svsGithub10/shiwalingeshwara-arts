@@ -34,8 +34,8 @@ public class Order {
     @Column(name="result_image")
     private String resultImage;
 
-    @Column(name="created_at")
-    private String createdAt;
+@Column(name="created_at")
+private java.time.LocalDateTime createdAt;
 
     public Order(){}
 
@@ -78,5 +78,11 @@ public class Order {
     public void setDxfFile(String dxfFile){ this.dxfFile=dxfFile; }
 
     public void setResultImage(String resultImage){ this.resultImage=resultImage; }
+public java.time.LocalDateTime getCreatedAt() {
+    return createdAt;
+}
 
+public void setCreatedAt(java.time.LocalDateTime createdAt) {
+    this.createdAt = createdAt;
+}
 }

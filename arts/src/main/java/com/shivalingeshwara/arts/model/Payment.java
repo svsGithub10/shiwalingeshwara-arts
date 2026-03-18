@@ -1,6 +1,7 @@
 package com.shivalingeshwara.arts.model;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name="payments")
@@ -18,8 +19,10 @@ public class Payment {
     @Column(name="payment_type")
     private String paymentType;
 
-    @Column(name="paid_at")
-    private String paidAt;
+
+
+@Column(name="paid_at")
+private LocalDateTime paidAt;
 
     public Payment(){}
 
@@ -27,6 +30,10 @@ public class Payment {
     public Long getOrderId(){ return orderId; }
     public Double getAmount(){ return amount; }
     public String getPaymentType(){ return paymentType; }
+
+    public LocalDateTime getPaidAt(){ return paidAt; }
+
+public void setPaidAt(LocalDateTime paidAt){ this.paidAt = paidAt; }
 
     public void setId(Long id){ this.id=id; }
     public void setOrderId(Long orderId){ this.orderId=orderId; }

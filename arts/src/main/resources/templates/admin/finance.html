@@ -1,0 +1,50 @@
+<h2 class="page-title">Finance Dashboard</h2>
+
+<!-- SECTION 1 -->
+<div class="finance-grid">
+
+<div class="card" id="totalOrders"></div>
+<div class="card" id="inProgress"></div>
+<div class="card" id="completed"></div>
+
+<div class="card">
+    <input type="date" id="dayPicker" onchange="onDayChange()">
+    <div id="todayRevenue"></div>
+</div>
+
+</div>
+
+<!-- SECTION 2 -->
+<div class="finance-grid">
+
+<div class="card">
+    <input type="month" id="monthPicker" onchange="onMonthChange()">
+    <div id="monthlyRevenue"></div>
+</div>
+
+<div class="card">
+    <select id="yearPicker" onchange="onYearChange()"></select>
+    <div id="yearlyRevenue"></div>
+</div>
+
+</div>
+
+<!-- SECTION 3 -->
+<div class="card" id="grossRevenue"></div>
+
+<!-- SECTION 4 -->
+<div class="card">
+<canvas id="financeChart"></canvas>
+</div>
+
+<div class="card">
+
+<div style="margin-bottom:10px;">
+<button onclick="loadDaily()">Daily</button>
+<button onclick="loadMonthly()">Monthly</button>
+<button onclick="loadYearly()">Yearly</button>
+</div>
+
+<canvas id="financeChart"></canvas>
+
+</div>

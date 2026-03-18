@@ -16,6 +16,15 @@ document.getElementById("contentArea").innerHTML = html;
 
 if(page === "orders"){
 loadClients();
+
+setTimeout(initFilters, 100)
+}
+
+if(page === "finance"){
+setTimeout(()=>{
+loadFinanceDashboard()   // ✅ main init
+loadDaily()              // chart default
+},200)
 }
 
 })
@@ -81,8 +90,22 @@ let clientsCache = []
 async function loadClients(){
 
 const res = await fetch("/api/clients")
-
 clientsCache = await res.json()
+
+// 🔥 attach order count
+for(let c of clientsCache){
+
+const res2 = await fetch("/api/orders/client/"+c.id)
+const orders = await res2.json()
+
+c.orderCount = orders.length
+
+// latest order date
+c.lastOrderDate = orders.length
+? orders[orders.length - 1].id   // temporary (can improve later)
+: 0
+
+}
 
 renderClients(clientsCache)
 
@@ -112,6 +135,11 @@ onclick="openClientOrders(${c.id})">
 
 <div class="client-city">${c.city || ""}</div>
 
+<!-- 🔥 NEW -->
+<div style="font-size:12px;color:#555;margin-top:5px;">
+Orders: ${c.orderCount || 0}
+</div>
+
 <div class="client-actions">
 
 <button onclick="event.stopPropagation();editClient(${c.id})">
@@ -129,6 +157,49 @@ Delete
 `
 
 })
+
+}
+
+document.querySelectorAll("input[name='filter']")
+.forEach(radio=>{
+
+radio.addEventListener("change",()=>{
+
+applyFilter(radio.value)
+
+})
+
+})
+
+function applyFilter(type){
+
+let list = [...clientsCache]
+
+if(type === "orders"){
+
+list.sort((a,b)=>(b.orderCount||0)-(a.orderCount||0))
+
+}
+
+if(type === "recent"){
+
+list.sort((a,b)=>(b.lastOrderDate||0)-(a.lastOrderDate||0))
+
+}
+
+if(type === "new"){
+
+list.sort((a,b)=>b.id - a.id)
+
+}
+
+if(type === "name"){
+
+list.sort((a,b)=>a.name.localeCompare(b.name))
+
+}
+
+renderClients(list)
 
 }
 
@@ -464,6 +535,24 @@ return "🟢"
 
 }
 
+function initFilters(){
+
+const radios = document.querySelectorAll("input[name='filter']")
+
+radios.forEach(radio=>{
+
+radio.addEventListener("change",()=>{
+
+applyFilter(radio.value)
+
+})
+
+})
+
+}
+
+
+
 async function saveOrder(){
 
 const formData = new FormData()
@@ -767,3 +856,239 @@ document.getElementById("imagePreviewModal").style.display="none"
 window.addEventListener("DOMContentLoaded", function(){
     loadPage("orders")
 })
+
+function toggleFilter(){
+
+const box = document.getElementById("filterBox")
+
+box.style.display = box.style.display === "none" ? "block" : "none"
+
+}
+
+/* ===============================
+   FINANCE DASHBOARD
+================================ */
+
+// STATE (ONLY ONCE)
+let selectedDate = new Date()
+let selectedMonth = new Date()
+let selectedYear = new Date().getFullYear()
+
+let financeChart = null
+
+/* ===============================
+   FORMATTERS
+================================ */
+
+function formatDate(date){
+    return date.toISOString().split("T")[0]
+}
+
+function formatDisplayDate(date){
+    return date.toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric"
+    })
+}
+
+/* ===============================
+   INIT PICKERS
+================================ */
+
+function initPickers(){
+
+    const day = document.getElementById("dayPicker")
+    const month = document.getElementById("monthPicker")
+    const year = document.getElementById("yearPicker")
+
+    if(!day || !month || !year) return // 🔥 important safety
+
+    day.value = formatDate(selectedDate)
+    month.value = selectedMonth.toISOString().slice(0,7)
+
+    year.innerHTML = ""
+
+    for(let y = 2023; y <= 2030; y++){
+        year.innerHTML += `<option value="${y}">${y}</option>`
+    }
+
+    year.value = selectedYear
+}
+
+/* ===============================
+   TODAY CARD
+================================ */
+
+async function loadFinance(){
+
+    const res = await fetch("/api/finance/summary?date=" + formatDate(selectedDate))
+    const data = await res.json()
+
+    const displayDate = formatDisplayDate(selectedDate)
+
+    const el = document.getElementById("todayRevenue")
+    if(!el) return
+
+    el.innerHTML = `
+    <div style="display:flex;justify-content:space-between;">
+        <b>${displayDate}</b>
+        <div>
+            <button onclick="changeDay(-1)">◀</button>
+            <button onclick="changeDay(1)">▶</button>
+        </div>
+    </div>
+
+    <div style="margin-top:10px">
+        Orders: <b>${data.todayOrders || 0}</b><br>
+        Revenue: <b>₹${data.todayRevenue || 0}</b>
+    </div>
+    `
+
+    document.getElementById("totalOrders").innerHTML =
+        "Orders<br><b>" + (data.totalOrders || 0) + "</b>"
+
+    document.getElementById("inProgress").innerHTML =
+        "In Progress<br><b>" + (data.inProgress || 0) + "</b>"
+
+    document.getElementById("completed").innerHTML =
+        "Completed<br><b>" + (data.completed || 0) + "</b>"
+
+    document.getElementById("grossRevenue").innerHTML =
+        "Total Revenue<br><b>₹" + (data.totalRevenue || 0) + "</b>"
+}
+
+/* ===============================
+   DAY CONTROL
+================================ */
+
+function changeDay(offset){
+    selectedDate.setDate(selectedDate.getDate() + offset)
+
+    const input = document.getElementById("dayPicker")
+    if(input) input.value = formatDate(selectedDate)
+
+    loadFinance()
+}
+
+function onDayChange(){
+    selectedDate = new Date(document.getElementById("dayPicker").value)
+    loadFinance()
+}
+
+/* ===============================
+   MONTH CARD
+================================ */
+
+async function loadMonthlyCard(){
+
+    const res = await fetch("/api/finance/monthly")
+    const data = await res.json()
+
+    const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+
+    const key = months[selectedMonth.getMonth()]
+    const year = selectedMonth.getFullYear()
+
+    const m = data[key] || {}
+
+    const el = document.getElementById("monthlyRevenue")
+    if(!el) return
+
+    el.innerHTML = `
+    <b>${key}-${year}</b>
+
+    <div style="margin-top:10px">
+        Orders: <b>${m.orders || 0}</b><br>
+        Revenue: <b>₹${m.revenue || 0}</b>
+    </div>
+    `
+}
+
+function onMonthChange(){
+    selectedMonth = new Date(document.getElementById("monthPicker").value)
+    loadMonthlyCard()
+}
+
+/* ===============================
+   YEAR CARD
+================================ */
+
+async function loadYearlyCard(){
+
+    const res = await fetch("/api/finance/yearly")
+    const data = await res.json()
+
+    const y = data[selectedYear] || {}
+
+    const el = document.getElementById("yearlyRevenue")
+    if(!el) return
+
+    el.innerHTML = `
+    <b>${selectedYear}</b>
+
+    <div style="margin-top:10px">
+        Orders: <b>${y.orders || 0}</b><br>
+        Revenue: <b>₹${y.revenue || 0}</b>
+    </div>
+    `
+}
+
+function onYearChange(){
+    selectedYear = document.getElementById("yearPicker").value
+    loadYearlyCard()
+}
+
+/* ===============================
+   CHARTS
+================================ */
+
+async function loadDaily(){
+    const res = await fetch("/api/finance/daily")
+    const data = await res.json()
+    renderChart(Object.keys(data), Object.values(data), "Daily Revenue")
+}
+
+async function loadMonthly(){
+    const res = await fetch("/api/finance/monthly")
+    const data = await res.json()
+    renderChart(Object.keys(data), Object.values(data).map(x=>x.revenue||0), "Monthly Revenue")
+}
+
+async function loadYearly(){
+    const res = await fetch("/api/finance/yearly")
+    const data = await res.json()
+    renderChart(Object.keys(data), Object.values(data).map(x=>x.revenue||0), "Yearly Revenue")
+}
+
+function renderChart(labels, values, label){
+
+    const ctx = document.getElementById("financeChart")
+    if(!ctx) return
+
+    if(financeChart){
+        financeChart.destroy()
+    }
+
+    financeChart = new Chart(ctx,{
+        type:'line',
+        data:{
+            labels,
+            datasets:[{
+                label,
+                data: values
+            }]
+        }
+    })
+}
+
+/* ===============================
+   INIT
+================================ */
+
+function loadFinanceDashboard(){
+    initPickers()
+    loadFinance()
+    loadMonthlyCard()
+    loadYearlyCard()
+}
