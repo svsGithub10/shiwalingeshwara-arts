@@ -115,10 +115,13 @@ oninput="searchClients(this.value)">
 <label>Material</label>
 <select id="orderMaterial"></select>
 
-<label>Top Layer</label>
+<label>Top layer</label>
 <select id="orderTopLayer">
 <option value="">None</option>
 </select>
+
+<label>Other additions</label><br>
+<textarea id="orderRemark"></textarea><br>
 
 <label>DXF File</label>
 <input type="file" id="orderDxf">
@@ -192,6 +195,9 @@ oninput="searchClients(this.value)">
 <label>Top Layer</label>
 <select id="editTopLayer"></select>
 
+<label>Other additions</label><br>
+<textarea id="editRemark"></textarea><br>
+
 <label>Replace DXF</label>
 <input type="file" id="editDxf">
 
@@ -200,6 +206,9 @@ oninput="searchClients(this.value)">
 
 <label>Paid</label>
 <input type="number" id="editAdvance">
+
+<label>Ordered Date</label>
+<input type="date" id="editCreatedAt">
 
 <div class="modal-actions">
 

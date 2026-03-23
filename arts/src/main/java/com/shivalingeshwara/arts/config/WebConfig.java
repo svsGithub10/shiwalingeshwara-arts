@@ -11,8 +11,8 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         // ✅ Expose C:/shivalingeshwara-arts/uploads to the web
-        registry.addResourceHandler("/uploads/**")
-                .addResourceLocations("file:C:/shivalingeshwara-arts/uploads/");
+         registry.addResourceHandler("/uploads/**")
+                .addResourceLocations("file:///C:/shivalingeshwara-arts/");
     }
 
 
@@ -34,4 +34,7 @@ public class WebConfig implements WebMvcConfigurer {
                 .addPathPatterns("/order/**","/production/**");
 
     }
+
+
+
 }

@@ -56,7 +56,11 @@ oninput="searchMaterial(this.value)">
 
 <select id="materialParent"></select>
 
-<input id="materialStock" type="number" placeholder="Stock (leaf only)">
+<select id="materialStock">
+<option value="IN_STOCK">🟢 In Stock</option>
+<option value="LOW_STOCK">🟡 Low Stock</option>
+<option value="OUT_OF_STOCK">🔴 Out of Stock</option>
+</select>
 
 <div class="modal-actions">
 <button onclick="saveMaterial()">Save</button>
@@ -77,7 +81,11 @@ oninput="searchMaterial(this.value)">
 
 <input id="editMaterialName">
 
-<input id="editMaterialStock" type="number">
+<select id="editMaterialStock">
+<option value="IN_STOCK">🟢 In Stock</option>
+<option value="LOW_STOCK">🟡 Low Stock</option>
+<option value="OUT_OF_STOCK">🔴 Out of Stock</option>
+</select>
 
 <div class="modal-actions">
 <button onclick="saveEdit()">Save</button>

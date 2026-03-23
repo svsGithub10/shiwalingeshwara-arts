@@ -21,4 +21,14 @@ public class ProductionPageController {
         return "production/materials";
     }
 
+    @GetMapping("/production/finance")
+    public String productionFinance(){
+        return "production/finance";
+    }
+
+    @GetMapping("/production/expenses")
+    public String productionExpenses(){
+        return "production/expenses";
+    }
+
 }

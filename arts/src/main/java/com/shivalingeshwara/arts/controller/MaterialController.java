@@ -16,14 +16,18 @@ public class MaterialController {
     private MaterialRepository materialRepository;
 
 
+    // ===============================
     // GET ALL MATERIALS
+    // ===============================
     @GetMapping
     public List<Material> getMaterials(){
         return materialRepository.findAll();
     }
 
 
+    // ===============================
     // ADD MATERIAL
+    // ===============================
     @PostMapping
     public Material addMaterial(@RequestBody Map<String,Object> req){
 
@@ -31,23 +35,24 @@ public class MaterialController {
 
         m.setName((String) req.get("name"));
 
-        if(req.get("parentId") != null){
+        if(req.get("parentId") != null && !req.get("parentId").toString().isEmpty()){
             m.setParentId(Long.valueOf(req.get("parentId").toString()));
         }
 
-        if(req.get("stock") != null){
-            m.setStock(Integer.valueOf(req.get("stock").toString()));
-        }else{
-            m.setStock(0);
+        // ✅ STOCK STATUS ONLY
+        if(req.get("stockStatus") != null){
+            m.setStockStatus(req.get("stockStatus").toString());
+        } else {
+            m.setStockStatus("IN_STOCK"); // default
         }
-
-        m.setStockStatus("IN_STOCK");
 
         return materialRepository.save(m);
     }
 
 
-    // UPDATE STOCK
+    // ===============================
+    // UPDATE STOCK STATUS
+    // ===============================
     @PutMapping("/stock")
     public Material updateStock(@RequestBody Map<String,Object> req){
 
@@ -55,24 +60,18 @@ public class MaterialController {
 
         Material m = materialRepository.findById(id).orElseThrow();
 
-        Integer stock = Integer.valueOf(req.get("stock").toString());
-
-        m.setStock(stock);
-
-        // optional auto stock status
-        if(stock == 0){
-            m.setStockStatus("OUT_OF_STOCK");
-        }else if(stock < 5){
-            m.setStockStatus("LOW_STOCK");
-        }else{
-            m.setStockStatus("IN_STOCK");
+        // ✅ DIRECT STATUS UPDATE
+        if(req.get("stockStatus") != null){
+            m.setStockStatus(req.get("stockStatus").toString());
         }
 
         return materialRepository.save(m);
     }
 
 
+    // ===============================
     // EDIT MATERIAL
+    // ===============================
     @PutMapping("/{id}")
     public Material updateMaterial(@PathVariable Long id,
                                    @RequestBody Map<String,Object> req){
@@ -83,48 +82,50 @@ public class MaterialController {
             m.setName(req.get("name").toString());
         }
 
-        if(req.get("parentId") != null){
+        if(req.get("parentId") != null && !req.get("parentId").toString().isEmpty()){
             m.setParentId(Long.valueOf(req.get("parentId").toString()));
         }
 
-        if(req.get("stock") != null){
-            m.setStock(Integer.valueOf(req.get("stock").toString()));
+        // ✅ UPDATE STATUS
+        if(req.get("stockStatus") != null){
+            m.setStockStatus(req.get("stockStatus").toString());
         }
 
         return materialRepository.save(m);
     }
 
 
-@DeleteMapping("/{id}")
-public Map<String,String> deleteMaterial(@PathVariable Long id){
+    // ===============================
+    // DELETE MATERIAL
+    // ===============================
+    @DeleteMapping("/{id}")
+    public Map<String,String> deleteMaterial(@PathVariable Long id){
 
-    Map<String,String> res = new HashMap<>();
+        Map<String,String> res = new HashMap<>();
 
-    // check if material exists
-    Material m = materialRepository.findById(id).orElse(null);
+        Material m = materialRepository.findById(id).orElse(null);
 
-    if(m == null){
-        res.put("status","error");
-        res.put("message","Material not found");
+        if(m == null){
+            res.put("status","error");
+            res.put("message","Material not found");
+            return res;
+        }
+
+        // check children
+        List<Material> children = materialRepository.findByParentId(id);
+
+        if(children.size() > 0){
+            res.put("status","error");
+            res.put("message","Cannot delete material with children");
+            return res;
+        }
+
+        materialRepository.deleteById(id);
+
+        res.put("status","success");
+        res.put("message","Material deleted");
+
         return res;
     }
-
-    // check if it has children
-    List<Material> children = materialRepository.findByParentId(id);
-
-    if(children.size() > 0){
-        res.put("status","error");
-        res.put("message","Cannot delete material with children");
-        return res;
-    }
-
-    // delete
-    materialRepository.deleteById(id);
-
-    res.put("status","success");
-    res.put("message","Material deleted");
-
-    return res;
-}
 
 }

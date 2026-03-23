@@ -21,6 +21,9 @@ public class Order {
     @Column(name="top_layer")
     private String topLayer;
 
+    @Column(name="remark")
+    private String remark;
+
     private Double price;
 
     @Column(name="advance_paid")
@@ -37,6 +40,17 @@ public class Order {
 @Column(name="created_at")
 private java.time.LocalDateTime createdAt;
 
+@Column(name="delivered_at")
+private java.time.LocalDateTime deliveredAt;
+
+public java.time.LocalDateTime getDeliveredAt() {
+    return deliveredAt;
+}
+
+public void setDeliveredAt(java.time.LocalDateTime deliveredAt) {
+    this.deliveredAt = deliveredAt;
+}
+
     public Order(){}
 
     public Long getId(){ return id; }
@@ -48,6 +62,8 @@ private java.time.LocalDateTime createdAt;
     public String getMaterials(){ return materials; }
 
     public String getTopLayer(){ return topLayer; }
+    
+    public String getRemark(){ return remark; }
 
     public Double getPrice(){ return price; }
 
@@ -68,6 +84,8 @@ private java.time.LocalDateTime createdAt;
     public void setMaterials(String materials){ this.materials=materials; }
 
     public void setTopLayer(String topLayer){ this.topLayer=topLayer; }
+    
+    public void setRemark(String remark){ this.remark=remark; }
 
     public void setPrice(Double price){ this.price=price; }
 

@@ -36,6 +36,7 @@ public Order createOrder(
         @RequestParam String workType,
         @RequestParam String materials,
         @RequestParam(required=false) String topLayer,
+        @RequestParam(required=false) String remark,
         @RequestParam Double price,
         @RequestParam Double advance,
         @RequestParam(required=false) MultipartFile file
@@ -58,6 +59,7 @@ public Order createOrder(
     o.setWorkType(workType);
     o.setMaterials(materials);
     o.setTopLayer(topLayer);
+    o.setRemark(remark);
     o.setPrice(price);
     o.setAdvancePaid(advance);
     o.setCreatedAt(java.time.LocalDateTime.now());
@@ -96,8 +98,10 @@ public Order updateOrder(
         @RequestParam String workType,
         @RequestParam String materials,
         @RequestParam(required=false) String topLayer,
+        @RequestParam(required=false) String remark,
         @RequestParam Double price,
         @RequestParam Double advance,
+        @RequestParam(required = false) String createdAt,
         @RequestParam(required=false) MultipartFile file
 ) throws Exception {
 
@@ -107,7 +111,16 @@ public Order updateOrder(
     o.setMaterials(materials);
     o.setTopLayer(topLayer);
     o.setPrice(price);
+    o.setRemark(remark);
     o.setAdvancePaid(advance);
+if(createdAt != null && !createdAt.isBlank()){
+    o.setCreatedAt(
+        java.time.LocalDate.parse(createdAt)
+            .atTime(12, 0) // ✅ set mid-day instead of midnight
+    );
+}
+
+
 
     // ✅ ONLY replace if new file uploaded
     if(file != null && !file.isEmpty()){
@@ -122,6 +135,17 @@ public Order updateOrder(
 
         o.setDxfFile(path);
     }
+
+    return orderRepository.save(o);
+}
+
+@PutMapping("/{id}/deliver")
+public Order markDelivered(@PathVariable Long id){
+
+    Order o = orderRepository.findById(id).orElseThrow();
+
+    o.setStatus("DELIVERED");
+    o.setDeliveredAt(java.time.LocalDateTime.now());
 
     return orderRepository.save(o);
 }

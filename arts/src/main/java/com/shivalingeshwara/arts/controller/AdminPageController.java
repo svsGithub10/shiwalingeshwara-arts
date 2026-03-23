@@ -31,4 +31,9 @@ public class AdminPageController {
         return "admin/finance";
     }
 
+    @GetMapping("/admin/expenses")
+    public String expenses(){
+        return "admin/expenses";
+    }
+
 }

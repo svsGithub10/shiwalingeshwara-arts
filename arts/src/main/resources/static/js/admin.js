@@ -1,43 +1,46 @@
 function loadPage(page){
 
-fetch("/admin/"+page)
-.then(res => {
+    fetch("/admin/" + page)
+    .then(res => {
 
-if(!res.ok){
-throw new Error("Page not found")
+        if(!res.ok){
+            throw new Error("Page not found")
+        }
+
+        return res.text()
+    })
+    .then(html => {
+
+        document.getElementById("contentArea").innerHTML = html;
+
+        // ✅ ORDERS
+        if(page === "orders"){
+            loadClients()
+            initFilters()
+        }
+
+        // ✅ INVENTORY
+        if(page === "inventory" || page === "materials"){
+            loadMaterials()
+        }
+
+        // ✅ FINANCE DASHBOARD
+        if(page === "finance"){
+            loadFinanceDashboard()
+            loadDaily()
+        }
+
+        // ✅ EXPENSES
+        if(page === "expenses"){
+            loadExpenses()
+        }
+
+    })
+    .catch(err => {
+        console.error(err)
+        showToast("Failed to load page")
+    })
 }
-
-return res.text()
-
-})
-.then(html => {
-
-document.getElementById("contentArea").innerHTML = html;
-
-if(page === "orders"){
-loadClients();
-
-setTimeout(initFilters, 100)
-}
-
-if(page === "finance"){
-setTimeout(()=>{
-loadFinanceDashboard()   // ✅ main init
-loadDaily()              // chart default
-},200)
-}
-
-})
-.catch(err => {
-
-console.error(err)
-
-showToast("Failed to load page")
-
-});
-
-}
-
 /* LOGOUT */
 
 function logout(){
@@ -269,6 +272,8 @@ document.getElementById("clientEditModal").style.display="none"
 }
 
 
+
+
 async function saveClientEdit(){
 
 const id = document.getElementById("editClientId").value
@@ -346,6 +351,7 @@ let statusClass="status-created"
 
 if(o.status==="IN_PROGRESS") statusClass="status-progress"
 if(o.status==="COMPLETED") statusClass="status-complete"
+if(o.status==="DELIVERED") statusClass="status-delivered"
 
 const balance = o.price - (o.advancePaid || 0)
 
@@ -369,6 +375,11 @@ ${o.materials || ""}
 ${o.topLayer ? "& " + o.topLayer : ""}
 </div>
 
+<!-- OTHER MATERIAL/ REMARKS -->
+<div>
+${o.remark ? "& " + o.remark : ""}
+</div>
+
 <!-- PRICE -->
 <div>
 ₹${o.price || 0}
@@ -377,6 +388,10 @@ ${o.topLayer ? "& " + o.topLayer : ""}
 <!-- ADVANCE -->
 <div>
 Paid: ₹${o.advancePaid || 0}
+</div>
+
+<div>
+Ordered date: ${o.createdAt ? new Date(o.createdAt).toLocaleDateString('en-GB') : ""}
 </div>
 
 <!-- BALANCE -->
@@ -389,6 +404,18 @@ Balance: ₹${balance}
 <span class="status-pill ${statusClass}">
 ${o.status}
 </span>
+</div>
+
+${o.status === "COMPLETED" ? `
+<button onclick="markDelivered(${o.id})">
+Deliver
+</button>
+` : ""}
+
+<div>
+${o.deliveredAt 
+    ? "Delivered: " + new Date(o.deliveredAt).toLocaleDateString('en-GB') 
+    : ""}
 </div>
 
 <!-- RESULT IMAGE -->
@@ -434,6 +461,19 @@ Pay
 
 })
 
+}
+
+async function markDelivered(id){
+
+if(!confirm("Mark this order as Delivered?")) return
+
+await fetch("/api/orders/" + id + "/deliver", {
+    method: "PUT"
+})
+
+showToast("Order Delivered")
+
+openClientOrders(currentClientId)
 }
 
 function closeOrders(){
@@ -483,7 +523,7 @@ if(variants.length === 0){
 
 let name = child.name + " " + parent.name
 
-let stockDot = stockIndicator(child.stock)
+let stockDot = stockIndicator(child.stockStatus)
 
 materialSelect.innerHTML += `
 <option value="${name}">
@@ -501,7 +541,7 @@ variants.forEach(v=>{
 
 let name = v.name + " " + child.name + " " + parent.name
 
-let stockDot = stockIndicator(v.stock)
+let stockDot = stockIndicator(v.stockStatus)
 
 materialSelect.innerHTML += `
 <option value="${name}">
@@ -523,16 +563,13 @@ ${stockDot} ${name}
 
 }
 
-function stockIndicator(stock){
+function stockIndicator(status){
 
-if(stock === 0)
+if(status === "IN_STOCK") return "🟢"
+if(status === "LOW_STOCK") return "🟡"
+if(status === "OUT_OF_STOCK") return "🔴"
+
 return "🔴"
-
-if(stock <= 10)
-return "🟡"
-
-return "🟢"
-
 }
 
 function initFilters(){
@@ -565,6 +602,7 @@ formData.append("workType", document.getElementById("orderWorkType").value)
 formData.append("materials", document.getElementById("orderMaterial").value)
 formData.append("topLayer", document.getElementById("orderTopLayer").value)
 
+formData.append("remark", document.getElementById("orderRemark").value)
 formData.append("price", document.getElementById("orderPrice").value)
 formData.append("advance", document.getElementById("orderAdvance").value)
 
@@ -690,8 +728,13 @@ document.getElementById("editOrderModal").style.display="flex"
 
 document.getElementById("editOrderId").value = id
 document.getElementById("editWorkType").value = order.workType
+document.getElementById("editRemark").value = order.remark
 document.getElementById("editPrice").value = order.price
 document.getElementById("editAdvance").value = order.advancePaid || 0
+document.getElementById("editCreatedAt").value = 
+    order.createdAt 
+    ? new Date(order.createdAt).toISOString().split("T")[0] 
+    : ""
 
 // ✅ reset file input
 document.getElementById("editDxf").value = ""
@@ -726,7 +769,7 @@ async function loadMaterialsForEdit(order){
             if(variants.length === 0){
 
                 let name = child.name + " " + parent.name
-                let stockDot = stockIndicator(child.stock)
+                let stockDot = stockIndicator(child.stockStatus)
 
                 materialSelect.innerHTML += `
                 <option value="${name}">
@@ -743,7 +786,7 @@ async function loadMaterialsForEdit(order){
                 variants.forEach(v => {
 
                     let name = v.name + " " + child.name + " " + parent.name
-                    let stockDot = stockIndicator(v.stock)
+                    let stockDot = stockIndicator(v.stockStatus)
 
                     materialSelect.innerHTML += `
                     <option value="${name}">
@@ -778,8 +821,10 @@ formData.append("workType", document.getElementById("editWorkType").value)
 formData.append("materials", document.getElementById("editMaterial").value)
 formData.append("topLayer", document.getElementById("editTopLayer").value)
 
+formData.append("remark", document.getElementById("editRemark").value)
 formData.append("price", document.getElementById("editPrice").value)
 formData.append("advance", document.getElementById("editAdvance").value)
+formData.append("createdAt", document.getElementById("editCreatedAt").value)
 
 // ✅ DXF file (optional)
 const file = document.getElementById("editDxf").files[0]
@@ -941,7 +986,11 @@ async function loadFinance(){
 
     <div style="margin-top:10px">
         Orders: <b>${data.todayOrders || 0}</b><br>
-        Revenue: <b>₹${data.todayRevenue || 0}</b>
+        Revenue: <b>₹${data.todayRevenue || 0}</b><br>
+Expenses: <b>₹${data.todayExpenses || 0}</b><br>
+Profit: <b style="color:${(data.todayProfit||0)>=0?'green':'red'}">
+₹${data.todayProfit || 0}
+</b>
     </div>
     `
 
@@ -956,6 +1005,17 @@ async function loadFinance(){
 
     document.getElementById("grossRevenue").innerHTML =
         "Total Revenue<br><b>₹" + (data.totalRevenue || 0) + "</b>"
+
+document.getElementById("totalExpenses").innerHTML =
+"Total Expenses<br><b>₹" + (data.totalExpenses || 0) + "</b>"
+
+const profit = data.totalProfit || 0
+
+document.getElementById("profitStatus").innerHTML =
+    `Profit / Loss<br>
+    <b style="color:${profit >= 0 ? 'green' : 'red'}">
+        ₹${profit}
+    </b>`
 }
 
 /* ===============================
@@ -1000,7 +1060,11 @@ async function loadMonthlyCard(){
 
     <div style="margin-top:10px">
         Orders: <b>${m.orders || 0}</b><br>
-        Revenue: <b>₹${m.revenue || 0}</b>
+        Revenue: <b>₹${m.revenue || 0}</b><br>
+        Expenses: <b>₹${m.expenses || 0}</b><br>
+        Profit: <b style="color:${(m.profit||0)>=0?'green':'red'}">
+            ₹${m.profit || 0}
+        </b>
     </div>
     `
 }
@@ -1029,7 +1093,11 @@ async function loadYearlyCard(){
 
     <div style="margin-top:10px">
         Orders: <b>${y.orders || 0}</b><br>
-        Revenue: <b>₹${y.revenue || 0}</b>
+        Revenue: <b>₹${y.revenue || 0}</b><br>
+        Expenses: <b>₹${y.expenses || 0}</b><br>
+        Profit: <b style="color:${(y.profit||0)>=0?'green':'red'}">
+            ₹${y.profit || 0}
+        </b>
     </div>
     `
 }
@@ -1044,27 +1112,50 @@ function onYearChange(){
 ================================ */
 
 async function loadDaily(){
-    const res = await fetch("/api/finance/daily")
+
+    const res = await fetch("/api/finance/daily-full")
     const data = await res.json()
-    renderChart(Object.keys(data), Object.values(data), "Daily Revenue")
+
+    const labels = Object.keys(data)
+
+    const revenue = labels.map(d => data[d].revenue || 0)
+    const expenses = labels.map(d => data[d].expenses || 0)
+    const profit = labels.map(d => (data[d].revenue || 0) - (data[d].expenses || 0))
+
+    renderChartMulti(labels, revenue, expenses, profit)
 }
 
 async function loadMonthly(){
+
     const res = await fetch("/api/finance/monthly")
     const data = await res.json()
-    renderChart(Object.keys(data), Object.values(data).map(x=>x.revenue||0), "Monthly Revenue")
+
+    const labels = Object.keys(data)
+
+    const revenue = labels.map(k => data[k].revenue || 0)
+    const expenses = labels.map(k => data[k].expenses || 0)
+    const profit = labels.map(k => data[k].profit || 0)
+
+    renderChartMulti(labels, revenue, expenses, profit)
 }
 
 async function loadYearly(){
+
     const res = await fetch("/api/finance/yearly")
     const data = await res.json()
-    renderChart(Object.keys(data), Object.values(data).map(x=>x.revenue||0), "Yearly Revenue")
+
+    const labels = Object.keys(data)
+
+    const revenue = labels.map(k => data[k].revenue || 0)
+    const expenses = labels.map(k => data[k].expenses || 0)
+    const profit = labels.map(k => data[k].profit || 0)
+
+    renderChartMulti(labels, revenue, expenses, profit)
 }
 
-function renderChart(labels, values, label){
+function renderChartMulti(labels, revenue, expenses, profit){
 
     const ctx = document.getElementById("financeChart")
-    if(!ctx) return
 
     if(financeChart){
         financeChart.destroy()
@@ -1074,10 +1165,20 @@ function renderChart(labels, values, label){
         type:'line',
         data:{
             labels,
-            datasets:[{
-                label,
-                data: values
-            }]
+            datasets:[
+                {
+                    label:"Revenue",
+                    data: revenue
+                },
+                {
+                    label:"Expenses",
+                    data: expenses
+                },
+                {
+                    label:"Profit",
+                    data: profit
+                }
+            ]
         }
     })
 }
@@ -1091,4 +1192,439 @@ function loadFinanceDashboard(){
     loadFinance()
     loadMonthlyCard()
     loadYearlyCard()
+}
+
+/* ===============================
+   MATERIAL INVENTORY (VIEW ONLY)
+================================ */
+
+let materialsCache = []
+
+async function loadMaterials(){
+
+  const res = await fetch("/api/materials")
+  materialsCache = await res.json()
+
+  renderMaterials()
+
+}
+
+
+/* -------- STOCK STATUS -------- */
+
+function calculateStockStatus(id){
+
+  const children = materialsCache.filter(m => m.parentId == id)
+
+  // leaf node
+  if(children.length === 0){
+      const item = materialsCache.find(m => m.id == id)
+      return item?.stockStatus || "OUT_OF_STOCK"
+  }
+
+  let hasInStock = false
+  let hasLowStock = false
+
+  children.forEach(c => {
+
+      const status = calculateStockStatus(c.id)
+
+      if(status === "IN_STOCK") hasInStock = true
+      else if(status === "LOW_STOCK") hasLowStock = true
+
+  })
+
+  if(hasInStock) return "IN_STOCK"
+  if(hasLowStock) return "LOW_STOCK"
+
+  return "OUT_OF_STOCK"
+}
+
+
+/* -------- BADGE -------- */
+
+function getStockBadge(status){
+
+  if(status === "IN_STOCK"){
+    return `<span class="badge green">🟢 In Stock</span>`
+  }
+
+  if(status === "LOW_STOCK"){
+    return `<span class="badge yellow">🟡 Low Stock</span>`
+  }
+
+  return `<span class="badge red">🔴 Out of Stock</span>`
+}
+
+
+/* -------- RENDER ROOT -------- */
+
+function renderMaterials(){
+
+  const container = document.getElementById("materialsContainer")
+  container.innerHTML=""
+
+  const parents = materialsCache.filter(m => m.parentId == null)
+
+  parents.forEach(parent=>{
+
+    container.innerHTML += `
+    <div class="material-row"
+         onmouseenter="showMaterialInfo(${parent.id}, event)"
+         onmouseleave="hideMaterialInfo()">
+
+      <div class="material-name">
+        <span id="icon-${parent.id}" onclick="toggleChildren(${parent.id})" style="cursor:pointer;">▶</span>
+        ${parent.name}
+      </div>
+
+      <div class="stock">
+        ${getStockBadge(calculateStockStatus(parent.id))}
+      </div>
+
+    </div>
+
+    <div id="children-${parent.id}" style="display:none"></div>
+    `
+
+    renderChildren(parent.id)
+
+  })
+
+}
+
+
+/* -------- RENDER CHILDREN -------- */
+
+function renderChildren(parentId){
+
+  const container = document.getElementById("children-"+parentId)
+  const children = materialsCache.filter(m => m.parentId == parentId)
+
+  let html=""
+
+  children.forEach(child=>{
+
+    const hasChildren = materialsCache.some(m => m.parentId == child.id)
+
+    html += `
+    <div class="material-row child"
+         onmouseenter="showMaterialInfo(${child.id}, event)"
+         onmouseleave="hideMaterialInfo()">
+
+      <div class="material-name">
+        <span id="icon-${child.id}" onclick="toggleChildren(${child.id})" style="cursor:pointer;">
+          ${hasChildren ? "▶" : "•"}
+        </span>
+        ${child.name}
+      </div>
+
+      <div class="stock">
+        ${getStockBadge(
+          hasChildren 
+          ? calculateStockStatus(child.id)
+          : child.stockStatus
+        )}
+      </div>
+
+    </div>
+
+    <div id="children-${child.id}" style="display:none"></div>
+    `
+
+  })
+
+  container.innerHTML = html
+
+  children.forEach(child=>{
+    renderChildren(child.id)
+  })
+
+}
+
+
+/* -------- TOGGLE -------- */
+
+function toggleChildren(id){
+
+  const el = document.getElementById("children-"+id)
+  const icon = document.getElementById("icon-"+id)
+
+  if(!el) return
+
+  const isOpen = el.style.display === "block"
+
+  el.style.display = isOpen ? "none" : "block"
+
+  if(icon){
+    icon.innerText = isOpen ? "▶" : "▼"
+  }
+
+}
+
+
+/* -------- TOOLTIP -------- */
+
+function showMaterialInfo(id, e){
+
+  const m = materialsCache.find(x=>x.id==id)
+  const children = materialsCache.filter(x=>x.parentId==id)
+
+  const tooltip = document.getElementById("materialTooltip")
+
+  tooltip.innerHTML = `
+  <b>${m.name}</b><br>
+  Type: ${children.length ? "Parent" : "Leaf"}<br>
+  Status: ${getStockBadge(
+    m.stockStatus || calculateStockStatus(id)
+  )}
+  `
+
+  tooltip.style.display = "block"
+  tooltip.style.left = e.pageX + 10 + "px"
+  tooltip.style.top = e.pageY + 10 + "px"
+
+}
+
+function hideMaterialInfo(){
+  const tooltip = document.getElementById("materialTooltip")
+  if(tooltip) tooltip.style.display="none"
+}
+
+
+function searchMaterial(text){
+
+  text = text.toLowerCase()
+
+  const container = document.getElementById("materialsContainer")
+
+  // each parent block = row + its children container
+  const parentRows = container.querySelectorAll(":scope > .material-row")
+
+  parentRows.forEach(parentRow => {
+
+    const name = parentRow
+      .querySelector(".material-name")
+      .innerText
+      .toLowerCase()
+
+    const parentId = parentRow
+      .querySelector("[id^='icon-']")
+      ?.id?.replace("icon-", "")
+
+    const childrenBox = document.getElementById("children-" + parentId)
+
+    if(name.includes(text)){
+
+      parentRow.style.display = "flex"
+
+      // IMPORTANT: keep children hidden initially (normal behavior)
+      if(childrenBox) childrenBox.style.display = "none"
+
+      // reset icon
+      const icon = document.getElementById("icon-" + parentId)
+      if(icon) icon.innerText = "▶"
+
+    }else{
+
+      parentRow.style.display = "none"
+
+      // also hide its children completely
+      if(childrenBox) childrenBox.style.display = "none"
+
+    }
+
+  })
+
+}
+
+
+//Expenses--
+
+let expenses = []
+
+async function loadExpenses() {
+
+    const type = document.getElementById("filterType").value
+
+    const url = type ? `/api/expenses?type=${type}` : "/api/expenses"
+
+    const res = await fetch(url)
+    expenses = await res.json()
+
+    renderExpenses()
+}
+
+function renderExpenses() {
+
+    const table = document.getElementById("expenseTable")
+    table.innerHTML = ""
+
+    expenses.forEach(e => {
+
+        table.innerHTML += `
+        <tr>
+            <td>${e.date}</td>
+            <td>${e.title}</td>
+            <td>${e.type}</td>
+            <td>${e.category}</td>
+            <td>₹${e.amount}</td>
+            <td>${e.fileUrl ? `<a href="${e.fileUrl}" target="_blank">View</a>` : "-"}</td>
+            <td>
+                <button onclick="editExpense(${e.id})">Edit</button>
+                <button onclick="deleteExpense(${e.id})">Delete</button>
+            </td>
+        </tr>
+        `
+    })
+}
+
+
+async function saveExpense() {
+
+    let fileUrl = null
+    const fileInput = document.getElementById("file")
+
+    // ✅ Upload file if exists
+    if (fileInput.files.length > 0) {
+
+        const formData = new FormData()
+        formData.append("file", fileInput.files[0])
+
+        const res = await fetch("/api/upload", {
+            method: "POST",
+            body: formData
+        })
+
+        fileUrl = await res.text()
+    }
+
+    const data = {
+        title: document.getElementById("title").value,
+        type: document.getElementById("type").value,
+        category: document.getElementById("category").value,
+        amount: parseFloat(document.getElementById("amount").value),
+        date: document.getElementById("date").value,
+        note: document.getElementById("note").value,
+        fileUrl: fileUrl
+    }
+
+    await fetch("/api/expenses", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+    })
+
+    closeForm()
+    loadExpenses()
+}
+
+let editingId = null
+
+function editExpense(id){
+
+    const e = expenses.find(x => x.id === id)
+
+    editingId = id
+
+    openForm()
+
+    document.getElementById("type").value = e.type
+    document.getElementById("title").value = e.title
+    document.getElementById("category").value = e.category
+    document.getElementById("amount").value = e.amount
+    document.getElementById("date").value = e.date
+    document.getElementById("note").value = e.note || ""
+
+}
+
+async function saveExpense() {
+
+    let fileUrl = null
+    const fileInput = document.getElementById("file")
+
+    // upload only if new file selected
+    if (fileInput.files.length > 0) {
+
+        const formData = new FormData()
+        formData.append("file", fileInput.files[0])
+
+        const res = await fetch("/api/upload", {
+            method: "POST",
+            body: formData
+        })
+
+        fileUrl = await res.text()
+    }
+
+    const data = {
+        title: document.getElementById("title").value,
+        type: document.getElementById("type").value,
+        category: document.getElementById("category").value,
+        amount: parseFloat(document.getElementById("amount").value),
+        date: document.getElementById("date").value,
+        note: document.getElementById("note").value
+    }
+
+    if(fileUrl){
+        data.fileUrl = fileUrl
+    }
+
+    // ✅ EDIT
+    if(editingId){
+
+        await fetch(`/api/expenses/${editingId}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        })
+
+        editingId = null
+    }
+
+    // ✅ ADD
+    else{
+
+        await fetch("/api/expenses", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        })
+    }
+
+    closeForm()
+    loadExpenses()
+}
+
+function closeForm(){
+
+    document.getElementById("expenseModal").style.display = "none"
+
+    editingId = null
+
+    document.getElementById("title").value = ""
+    document.getElementById("category").value = ""
+    document.getElementById("amount").value = ""
+    document.getElementById("date").value = ""
+    document.getElementById("note").value = ""
+    document.getElementById("file").value = ""
+}
+
+async function deleteExpense(id) {
+
+    if (!confirm("Delete?")) return
+
+    await fetch(`/api/expenses/${id}`, {
+        method: "DELETE"
+    })
+
+    loadExpenses()
+}
+
+function openForm(){
+    document.getElementById("expenseModal").style.display = "flex"
+}
+
+function closeForm(){
+    document.getElementById("expenseModal").style.display = "none"
 }

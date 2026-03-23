@@ -1,0 +1,26 @@
+<link rel="stylesheet" href="/css/admin.css">
+<h2 class="page-title">Material Inventory</h2>
+
+<div class="toolbar">
+
+<input
+type="text"
+class="search"
+placeholder="Search material..."
+oninput="searchMaterial(this.value)">
+
+
+
+</div>
+
+<div id="materialsContainer" class="materials-list"></div>
+
+
+
+<div id="emptyState" style="display:none; text-align:center; margin-top:20px;">
+No materials found
+</div>
+
+<div id="materialTooltip" class="tooltip"></div>
+
+
