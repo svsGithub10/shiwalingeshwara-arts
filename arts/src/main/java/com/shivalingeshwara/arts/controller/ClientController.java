@@ -6,6 +6,7 @@ import com.shivalingeshwara.arts.repository.OrderRepository;
 import com.shivalingeshwara.arts.repository.PaymentRepository;
 import com.shivalingeshwara.arts.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -103,6 +104,7 @@ public class ClientController {
 
 
 @DeleteMapping("/{id}")
+@Transactional
 public Map<String,String> deleteClient(@PathVariable Long id){
 
     Map<String,String> res = new HashMap<>();
@@ -121,23 +123,48 @@ public Map<String,String> deleteClient(@PathVariable Long id){
         return res;
     }
 
-    // ✅ 1. GET ALL ORDERS OF CLIENT
+    // 1️⃣ GET ALL ORDERS
     List<Order> orders = orderRepository.findByClientId(id);
 
-    for(Order o : orders){
+    if(!orders.isEmpty()){
 
-        // ✅ 2. DELETE PAYMENTS OF EACH ORDER
-        paymentRepository.deleteByOrderId(o.getId());
+        List<Long> orderIds = orders.stream()
+                .map(Order::getId)
+                .toList();
 
+        // 2️⃣ DELETE PAYMENTS (single query)
+        paymentRepository.deleteByOrderIdIn(orderIds);
+
+        // 3️⃣ DELETE FILES (IMPORTANT if you store paths)
+        for(Order o : orders){
+
+            try{
+                if(o.getDxfFile() != null){
+                    java.nio.file.Files.deleteIfExists(
+                        java.nio.file.Paths.get(o.getDxfFile())
+                    );
+                }
+
+                if(o.getResultImage() != null){
+                    java.nio.file.Files.deleteIfExists(
+                        java.nio.file.Paths.get(o.getResultImage())
+                    );
+                }
+
+            }catch(Exception e){
+                System.out.println("File delete failed: " + e.getMessage());
+            }
+        }
+
+        // 4️⃣ DELETE ORDERS
+        orderRepository.deleteAll(orders);
     }
 
-    // ✅ 3. DELETE ORDERS
-    orderRepository.deleteAll(orders);
-
-    // ✅ 4. DELETE USER
+    // 5️⃣ DELETE CLIENT
     userRepository.deleteById(id);
 
     res.put("status","success");
+    res.put("message","Client and all related data deleted");
 
     return res;
 }

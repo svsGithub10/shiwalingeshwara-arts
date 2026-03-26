@@ -1,100 +1,7 @@
 
 <div class="expenses-page">
 
-<style>
-/* ===== EXPENSE PAGE ONLY ===== */
 
-.expenses-page .exp-header{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:20px;
-}
-
-.expenses-page .exp-actions{
-    display:flex;
-    gap:10px;
-}
-
-/* BUTTON */
-.expenses-page .exp-btn{
-    background:#2563eb;
-    color:white;
-    padding:8px 14px;
-    border:none;
-    border-radius:6px;
-    cursor:pointer;
-}
-
-.expenses-page .exp-btn:hover{
-    background:#1e4fd1;
-}
-
-/* TABLE */
-.expenses-page .exp-table{
-    width:100%;
-    border-collapse:collapse;
-}
-
-.expenses-page .exp-table th{
-    background:#f1f5f9;
-    padding:10px;
-    text-align:left;
-}
-
-.expenses-page .exp-table td{
-    padding:10px;
-    border-bottom:1px solid #eee;
-}
-
-/* TYPE COLORS */
-.expenses-page .type-material{
-    color:#2563eb;
-    font-weight:600;
-}
-
-.expenses-page .type-bill{
-    color:#e67e22;
-    font-weight:600;
-}
-
-.expenses-page .type-pigmy{
-    color:#22c55e;
-    font-weight:600;
-}
-
-/* MODAL (SAFE VERSION) */
-.expenses-page .exp-modal{
-    position:fixed;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
-    background:rgba(0,0,0,0.45);
-    display:none;
-    align-items:center;
-    justify-content:center;
-    z-index:2000;
-}
-
-.expenses-page .exp-modal-box{
-    background:white;
-    padding:20px;
-    width:350px;
-    border-radius:10px;
-}
-
-/* INPUTS */
-.expenses-page input,
-.expenses-page select,
-.expenses-page textarea{
-    width:100%;
-    margin-bottom:10px;
-    padding:8px;
-    border:1px solid #ddd;
-    border-radius:6px;
-}
-</style>
 
 <div class="exp-header">
 
@@ -121,6 +28,7 @@
 <th>Title</th>
 <th>Type</th>
 <th>Category</th>
+<th>Notes</th>
 <th>Amount</th>
 <th>File</th>
 <th>Actions</th>
@@ -130,9 +38,16 @@
 </table>
 </div>
 
-<div id="expenseModal" class="exp-modal">
+<div id="expenseModal" class="modal">
 
-<div class="exp-modal-box">
+<div class="modal-box" style="width:400px">
+
+<button 
+    class="modal-close"
+    onclick="closeForm()"
+    style="position:absolute; top:10px; right:10px;">
+    ✕
+</button>
 
 <h3>Add Entry</h3>
 
@@ -146,11 +61,11 @@
 <input id="category" placeholder="Category">
 <input id="amount" type="number" placeholder="Amount">
 <input id="date" type="date">
-<textarea id="note"></textarea>
+<textarea id="note" placeholder="Notes"></textarea>
 
 <input id="file" type="file">
 
-<div style="display:flex; justify-content:flex-end; gap:10px;">
+<div class="modal-actions">
     <button onclick="saveExpense()" class="exp-btn">Save</button>
     <button onclick="closeForm()">Cancel</button>
 </div>
@@ -158,4 +73,13 @@
 </div>
 </div>
 
+</div>
+<div id="filePreviewModal" class="modal">
+    <div class="modal-box" style="width:500px">
+
+        <button class="modal-close" onclick="closeFilePreview()">✕</button>
+
+        <img id="expensePreviewImg" style="width:100%;border-radius:10px">
+
+    </div>
 </div>

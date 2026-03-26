@@ -3,11 +3,11 @@
 <!-- SECTION 1 -->
 <div class="finance-grid">
 
-<div class="card" id="totalOrders"></div>
-<div class="card" id="inProgress"></div>
-<div class="card" id="completed"></div>
+<div class="card" id="totalOrders" style="margin: 10px 0;"></div>
+<div class="card" id="inProgress" style="margin: 10px 0;"></div>
+<div class="card" id="completed" style="margin: 10px 0;"></div>
 
-<div class="card">
+<div class="card" style="margin: 10px 0;">
     <input type="date" id="dayPicker" onchange="onDayChange()">
     <div id="todayRevenue"></div>
 </div>
@@ -17,12 +17,12 @@
 <!-- SECTION 2 -->
 <div class="finance-grid">
 
-<div class="card">
+<div class="card" style="margin: 10px 0;">
     <input type="month" id="monthPicker" onchange="onMonthChange()">
     <div id="monthlyRevenue"></div>
 </div>
 
-<div class="card">
+<div class="card" style="margin: 10px 0;">
     <select id="yearPicker" onchange="onYearChange()"></select>
     <div id="yearlyRevenue"></div>
 </div>
@@ -32,22 +32,22 @@
 <!-- SECTION 3 -->
 <div class="finance-grid">
 
-<div class="card" id="grossRevenue"></div>
+<div class="card" id="grossRevenue" style="margin: 10px 0;"></div>
 
-<div class="card" id="totalExpenses"></div>
+<div class="card" id="totalExpenses" style="margin: 10px 0;"></div>
 
-<div class="card" id="profitStatus"></div>
+<div class="card" id="profitStatus" style="margin: 10px 0;"></div>
 
 </div>
 
 
 
-<div class="card">
+<div class="card" style="margin: 10px 0;">
 
-<div style="margin-bottom:10px;">
-<button onclick="loadDaily()">Daily</button>
-<button onclick="loadMonthly()">Monthly</button>
-<button onclick="loadYearly()">Yearly</button>
+<div class="chart-controls">
+    <button onclick="loadDaily()" class="chart-btn">Daily</button>
+    <button onclick="loadMonthly()" class="chart-btn">Monthly</button>
+    <button onclick="loadYearly()" class="chart-btn">Yearly</button>
 </div>
 
 

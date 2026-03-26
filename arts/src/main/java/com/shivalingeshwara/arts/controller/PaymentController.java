@@ -59,4 +59,26 @@ public class PaymentController {
 
     }
 
+    // GET PAYMENTS BY CLIENT
+@GetMapping("/client/{clientId}")
+public List<Payment> getPaymentsByClient(@PathVariable Long clientId){
+
+    // 1. get all orders of client
+    List<Order> orders = orderRepository.findByClientId(clientId);
+
+    if(orders.isEmpty()){
+        return new ArrayList<>();
+    }
+
+    // 2. extract orderIds
+    List<Long> orderIds = new ArrayList<>();
+
+    for(Order o : orders){
+        orderIds.add(o.getId());
+    }
+
+    // 3. get payments
+    return paymentRepository.findByOrderIdIn(orderIds);
+}
+
 }

@@ -1,3 +1,26 @@
+function toggleTheme(){
+
+    const body = document.body
+
+    body.classList.toggle("dark")
+
+    // save preference
+    localStorage.setItem("theme",
+        body.classList.contains("dark") ? "dark" : "light"
+    )
+}
+
+// load saved theme
+window.addEventListener("DOMContentLoaded", ()=>{
+
+    const saved = localStorage.getItem("theme")
+
+    if(saved === "dark"){
+        document.body.classList.add("dark")
+    }
+
+})
+
 function loadPage(page){
 
     fetch("/admin/" + page)
@@ -63,26 +86,40 @@ window.location.href="/"
 
 /* SIMPLE TOAST */
 
-function showToast(message){
+function showToast(message, type="success"){
 
-let toast = document.createElement("div")
+    // container (for stacking)
+    let container = document.getElementById("toastContainer")
 
-toast.innerText = message
+    if(!container){
+        container = document.createElement("div")
+        container.id = "toastContainer"
+        container.style.position = "fixed"
+        container.style.bottom = "20px"
+        container.style.right = "20px"
+        container.style.display = "flex"
+        container.style.flexDirection = "column"
+        container.style.gap = "10px"
+        container.style.zIndex = "9999"
+        document.body.appendChild(container)
+    }
 
-toast.style.position="fixed"
-toast.style.bottom="30px"
-toast.style.right="30px"
-toast.style.background="#333"
-toast.style.color="white"
-toast.style.padding="12px 18px"
-toast.style.borderRadius="6px"
+    // toast
+    let toast = document.createElement("div")
+    toast.className = `toast toast-${type}`
 
-document.body.appendChild(toast)
+    toast.innerHTML = `
+        <span>${message}</span>
+        <button onclick="this.parentElement.remove()">✕</button>
+    `
 
-setTimeout(()=>{
-toast.remove()
-},3000)
+    container.appendChild(toast)
 
+    // auto remove
+    setTimeout(()=>{
+        toast.classList.add("hide")
+        setTimeout(()=>toast.remove(),300)
+    },3000)
 }
 
 let clientsCache = []
@@ -103,9 +140,19 @@ const orders = await res2.json()
 
 c.orderCount = orders.length
 
+let total = 0
+let paid = 0
+
+orders.forEach(o=>{
+    total += o.price || 0
+    paid += o.advancePaid || 0
+})
+
+c.pendingAmount = total - paid
+
 // latest order date
 c.lastOrderDate = orders.length
-? orders[orders.length - 1].id   // temporary (can improve later)
+? orders[orders.length - 1].id
 : 0
 
 }
@@ -113,6 +160,8 @@ c.lastOrderDate = orders.length
 renderClients(clientsCache)
 
 }
+
+let currentOrders = []
 
 
 /* RENDER CLIENT CARDS */
@@ -132,7 +181,16 @@ grid.innerHTML += `
 <div class="client-card"
 onclick="openClientOrders(${c.id})">
 
-<div class="client-name">${c.name}</div>
+    <!-- TOP ROW -->
+    <div class="client-top">
+        <div class="client-name">${c.name}</div>
+
+${c.pendingAmount > 0 ? `
+<div class="client-pending pending">
+    ₹${c.pendingAmount}
+</div>
+` : ``}
+    </div>
 
 <div class="client-phone">${c.phone}</div>
 
@@ -145,13 +203,17 @@ Orders: ${c.orderCount || 0}
 
 <div class="client-actions">
 
-<button onclick="event.stopPropagation();editClient(${c.id})">
-Edit
+<button onclick="event.stopPropagation();editClient(${c.id})">Edit</button>
+
+<button onclick="event.stopPropagation();deleteClient(${c.id})">Delete</button>
+
+
+
+<button onclick="event.stopPropagation();openPaymentHistory(${c.id})">
+💰 Payments
 </button>
 
-<button onclick="event.stopPropagation();deleteClient(${c.id})">
-Delete
-</button>
+<button onclick="event.stopPropagation();addOrderForClient(${c.id})">+ Order</button>
 
 </div>
 
@@ -161,6 +223,22 @@ Delete
 
 })
 
+}
+
+function addOrderForClient(clientId){
+
+    const client = clientsCache.find(c=>c.id===clientId)
+
+    openNewOrder()
+
+    // auto fill
+    setTimeout(()=>{
+
+        document.getElementById("orderClientName").value = client.name
+        document.getElementById("orderClientPhone").value = client.phone
+        document.getElementById("orderClientCity").value = client.city || ""
+
+    },100)
 }
 
 document.querySelectorAll("input[name='filter']")
@@ -335,130 +413,200 @@ const res = await fetch("/api/orders/client/"+clientId)
 
 const orders = await res.json()
 
+currentOrders = orders
 renderOrders(orders)
+renderClientSummary(orders)
 
+}
+
+function renderClientSummary(orders){
+
+let total = 0
+let paid = 0
+let completed = 0
+
+orders.forEach(o=>{
+    total += o.price || 0
+    paid += o.advancePaid || 0
+    if(o.status === "COMPLETED" || o.status === "DELIVERED"){
+        completed++
+    }
+})
+
+const pending = total - paid
+
+document.getElementById("clientSummary").innerHTML = `
+
+<div class="summary-card">
+Total Orders<br><b>${orders.length}</b>
+</div>
+
+<div class="summary-card">
+Revenue<br><b>₹${total}</b>
+</div>
+
+<div class="summary-card">
+Pending<br><b style="color:red;">₹${pending}</b>
+</div>
+
+<div class="summary-card">
+Completed<br><b>${completed}</b>
+</div>
+
+`
+}
+
+function filterOrders(){
+
+    const orderDate = document.getElementById("filterOrderDate").value
+    const deliveredDate = document.getElementById("filterDeliveredDate").value
+
+    let filtered = [...currentOrders]
+
+    if(orderDate){
+        filtered = filtered.filter(o =>
+            o.createdAt &&
+            new Date(o.createdAt).toISOString().split("T")[0] === orderDate
+        )
+    }
+
+    if(deliveredDate){
+        filtered = filtered.filter(o =>
+            o.deliveredAt &&
+            new Date(o.deliveredAt).toISOString().split("T")[0] === deliveredDate
+        )
+    }
+
+    renderOrders(filtered)
+}
+
+function clearOrderFilters(){
+    document.getElementById("filterOrderDate").value = ""
+    document.getElementById("filterDeliveredDate").value = ""
+    renderOrders(currentOrders)
+}
+
+function getProgressStep(status){
+
+    if(status === "CREATED") return 1
+    if(status === "IN_PROGRESS") return 2
+    if(status === "COMPLETED") return 3
+    if(status === "DELIVERED") return 4
+
+    return 1
 }
 
 function renderOrders(orders){
 
 const container = document.getElementById("ordersList")
-
 container.innerHTML=""
 
 orders.forEach(o=>{
 
 let statusClass="status-created"
-
 if(o.status==="IN_PROGRESS") statusClass="status-progress"
 if(o.status==="COMPLETED") statusClass="status-complete"
 if(o.status==="DELIVERED") statusClass="status-delivered"
 
 const balance = o.price - (o.advancePaid || 0)
+const step = getProgressStep(o.status)
 
 container.innerHTML += `
 
-<div class="material-row">
+<div class="order-card">
 
-<!-- ORDER INFO -->
-<div>
-<b>#${o.id}</b><br>
-${o.workType || ""}
+    <!-- HEADER -->
+    <div class="order-header">
+        <div>
+            <div class="order-id">#${o.id}</div>
+            <div class="order-type">${o.workType || ""}</div>
+        </div>
+
+        <span class="status-pill ${statusClass}">
+            ${o.status}
+        </span>
+    </div>
+
+    
+    <!-- PROGRESS TRACKER -->
+<div class="order-progress">
+
+    <div class="step ${step>=1?'active':''}">Created</div>
+    <div class="line ${step>=2?'active':''}"></div>
+
+    <div class="step ${step>=2?'active':''}">In Progress</div>
+    <div class="line ${step>=3?'active':''}"></div>
+
+    <div class="step ${step>=3?'active':''}">Completed</div>
+    <div class="line ${step>=4?'active':''}"></div>
+
+    <div class="step ${step>=4?'active':''}">Delivered</div>
+
 </div>
 
-<!-- MATERIAL -->
-<div>
-${o.materials || ""}
-</div>
+    <!-- IMAGE (CENTER BIG) -->
+    ${o.resultImage ? `
+    <div class="order-image-box">
+        <img src="/api/orders/view-result?path=${encodeURIComponent(o.resultImage)}"
+        class="order-image"
+        onclick="previewImage('${o.resultImage}')">
+    </div>
+    ` : ``}
 
-<!-- TOP LAYER -->
-<div>
-${o.topLayer ? "& " + o.topLayer : ""}
-</div>
+    <!-- BODY -->
+    <div class="order-body">
 
-<!-- OTHER MATERIAL/ REMARKS -->
-<div>
-${o.remark ? "& " + o.remark : ""}
-</div>
+        <div class="order-info">
+            <b>Material:</b> ${o.materials || "-"} <br>
+            <b>Material 2:</b> ${o.topLayer || "-"} <br>
+            <b>Notes:</b> ${o.remark || "-"}
+        </div>
 
-<!-- PRICE -->
-<div>
-₹${o.price || 0}
-</div>
+        <div class="order-finance">
+            <div>Total: ₹${o.price || 0}</div>
+            <div>Paid: ₹${o.advancePaid || 0}</div>
+            <div class="balance ${balance>0?'pending':'paid'}">
+                Balance: ₹${balance}
+            </div>
+        </div>
 
-<!-- ADVANCE -->
-<div>
-Paid: ₹${o.advancePaid || 0}
-</div>
+    </div>
 
-<div>
-Ordered date: ${o.createdAt ? new Date(o.createdAt).toLocaleDateString('en-GB') : ""}
-</div>
+    <!-- FOOTER -->
+    <div class="order-footer">
 
-<!-- BALANCE -->
-<div>
-Balance: ₹${balance}
-</div>
+        <div class="order-date">
+            Ordered: ${o.createdAt ? new Date(o.createdAt).toLocaleDateString('en-GB') : ""}<br>
+            ${o.deliveredAt ? `Delivered: ${new Date(o.deliveredAt).toLocaleDateString('en-GB')}` : ""}
+        </div>
 
-<!-- STATUS -->
-<div>
-<span class="status-pill ${statusClass}">
-${o.status}
-</span>
-</div>
+        <div class="order-actions">
 
-${o.status === "COMPLETED" ? `
+            ${o.dxfFile ? `<button onclick="downloadDxf(${o.id})">DXF</button>` : ``}
+
+            <button onclick="editOrder(${o.id})">Edit</button>
+
+            <button onclick="deleteOrder(${o.id})">Delete</button>
+
+            ${balance <= 0 ? `
+            <button class="paid-btn" disabled>✔ Paid</button>
+            ` : `
+            <button onclick="openPayment(${o.id})">Pay</button>
+            `}
+
+                ${o.status == "COMPLETED" ? `
 <button onclick="markDelivered(${o.id})">
 Deliver
 </button>
-` : ""}
+` : ``}
 
-<div>
-${o.deliveredAt 
-    ? "Delivered: " + new Date(o.deliveredAt).toLocaleDateString('en-GB') 
-    : ""}
-</div>
+        </div>
 
-<!-- RESULT IMAGE -->
-<div>
-${o.resultImage ? `
-<img src="/api/orders/view-result?path=${encodeURIComponent(o.resultImage)}"
-style="width:45px;height:45px;border-radius:6px;cursor:pointer"
-onclick="previewImage('${o.resultImage}')">
-` : `<span style="color:#aaa;font-size:12px;">No Image</span>`}
-</div>
-
-<!-- ACTIONS -->
-<div class="actions">
-
-${o.dxfFile ? `
-<button onclick="downloadDxf(${o.id})">
-DXF
-</button>
-` : `<span style="font-size:12px;color:#aaa;">No DXF</span>`}
-
-<button onclick="editOrder(${o.id})">
-Edit
-</button>
-
-<button onclick="deleteOrder(${o.id})">
-Delete
-</button>
-
-${balance <= 0 ? `
-<button class="paid-btn" disabled>
-✔ Paid
-</button>
-` : `
-<button onclick="openPayment(${o.id})">
-Pay
-</button>
-`}
-</div>
+    </div>
 
 </div>
 
 `
-
 })
 
 }
@@ -496,10 +644,15 @@ document.getElementById("newOrderModal").style.display="none"
 
 }
 
+
+
 async function loadMaterialsForOrder(){
 
 const res = await fetch("/api/materials")
 const materials = await res.json()
+
+allMaterials = []
+allTopLayers = []
 
 const materialSelect = document.getElementById("orderMaterial")
 const topLayerSelect = document.getElementById("orderTopLayer")
@@ -535,6 +688,15 @@ topLayerSelect.innerHTML += `
 ${stockDot} ${name}
 </option>`
 
+allMaterials.push({
+    name: name,
+    stock: child.stockStatus || v?.stockStatus
+})
+allTopLayers.push({
+    name: name,
+    stock: child.stockStatus || v?.stockStatus
+})
+
 }else{
 
 variants.forEach(v=>{
@@ -553,6 +715,15 @@ topLayerSelect.innerHTML += `
 ${stockDot} ${name}
 </option>`
 
+allMaterials.push({
+    name: name,
+    stock: child.stockStatus || v?.stockStatus
+})
+allTopLayers.push({
+    name: name,
+    stock: child.stockStatus || v?.stockStatus
+})
+
 })
 
 }
@@ -561,6 +732,38 @@ ${stockDot} ${name}
 
 })
 
+}
+
+function renderMaterialOptions(list){
+
+    const select = document.getElementById("orderMaterial")
+    select.innerHTML = ""
+
+    list.forEach(m=>{
+
+        let dot = stockIndicator(m.stock)
+
+        select.innerHTML += `
+        <option value="${m.name}">
+            ${dot} ${m.name}
+        </option>`
+    })
+}
+
+function renderTopLayerOptions(list){
+
+    const select = document.getElementById("orderTopLayer")
+    select.innerHTML = "<option value=''>None</option>"
+
+    list.forEach(m=>{
+
+        let dot = stockIndicator(m.stock)
+
+        select.innerHTML += `
+        <option value="${m.name}">
+            ${dot} ${m.name}
+        </option>`
+    })
 }
 
 function stockIndicator(status){
@@ -623,6 +826,31 @@ loadClients()
 
 }
 
+let allMaterials = []
+let allTopLayers = []
+
+function filterMaterialOptions(){
+
+    const text = document.getElementById("materialSearch").value.toLowerCase()
+
+    const filtered = allMaterials.filter(m =>
+        m.name.toLowerCase().includes(text)
+    )
+
+    renderMaterialOptions(filtered.length ? filtered : allMaterials)
+}
+
+function filterTopLayerOptions(){
+
+    const text = document.getElementById("topLayerSearch").value.toLowerCase()
+
+    const filtered = allTopLayers.filter(m =>
+        m.name.toLowerCase().includes(text)
+    )
+
+    renderTopLayerOptions(filtered.length ? filtered : allTopLayers)
+}
+
 let currentOrder = null
 
 function openPayment(orderId){
@@ -650,13 +878,32 @@ document.getElementById("payOrderId").value = orderId
 document.getElementById("payBalanceInfo").innerText =
 "Balance to pay: ₹" + balance
 
-// optional autofill
 document.getElementById("payAmount").value = balance
+
+document.getElementById("upiSelect").value = "8431983269@ybl"
+
+updateUPIQR()   // 🔥 generate initial QR
 
 // clear error
 document.getElementById("payError").innerText = ""
 
+
 })
+}
+
+function updateUPIQR(){
+
+    const amount = document.getElementById("payAmount").value
+    const upiId = document.getElementById("upiSelect").value  // ✅ dynamic
+    const name = "SHANTVEERESH SHEELAVANTAR"
+
+    if(!amount || amount <= 0) return
+
+    const upiUrl = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(name)}&am=${amount}&cu=INR`
+
+    const qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" + encodeURIComponent(upiUrl)
+
+    document.getElementById("upiQr").src = qrUrl
 }
 
 function closePayment(){
@@ -711,9 +958,11 @@ type:type
 })
 
 closePayment()
-closeOrders()
+
 
 showToast("Payment added")
+
+openClientOrders(currentClientId)
 
 }
 
@@ -742,6 +991,7 @@ document.getElementById("editDxf").value = ""
 /* load materials */
 await loadMaterialsForEdit(order)
 
+
 }
 
 async function loadMaterialsForEdit(order){
@@ -751,6 +1001,9 @@ async function loadMaterialsForEdit(order){
 
     const materialSelect = document.getElementById("editMaterial")
     const topLayerSelect = document.getElementById("editTopLayer")
+
+    allMaterials = []
+    allTopLayers = []
 
     materialSelect.innerHTML = ""
     topLayerSelect.innerHTML = "<option value=''>None</option>"
@@ -768,35 +1021,47 @@ async function loadMaterialsForEdit(order){
 
             if(variants.length === 0){
 
-                let name = child.name + " " + parent.name
-                let stockDot = stockIndicator(child.stockStatus)
+let name = child.name + " " + parent.name
+let stock = child.stockStatus
+let stockDot = stockIndicator(stock)
 
-                materialSelect.innerHTML += `
-                <option value="${name}">
-                ${stockDot} ${name}
-                </option>`
+/* store for search */
+allMaterials.push({ name, stock })
+allTopLayers.push({ name, stock })
 
-                topLayerSelect.innerHTML += `
-                <option value="${name}">
-                ${stockDot} ${name}
-                </option>`
+/* render */
+materialSelect.innerHTML += `
+<option value="${name}">
+${stockDot} ${name}
+</option>`
+
+topLayerSelect.innerHTML += `
+<option value="${name}">
+${stockDot} ${name}
+</option>`
 
             } else {
 
                 variants.forEach(v => {
 
-                    let name = v.name + " " + child.name + " " + parent.name
-                    let stockDot = stockIndicator(v.stockStatus)
+  let name = v.name + " " + child.name + " " + parent.name
+let stock = v.stockStatus
+let stockDot = stockIndicator(stock)
 
-                    materialSelect.innerHTML += `
-                    <option value="${name}">
-                    ${stockDot} ${name}
-                    </option>`
+/* store */
+allMaterials.push({ name, stock })
+allTopLayers.push({ name, stock })
 
-                    topLayerSelect.innerHTML += `
-                    <option value="${name}">
-                    ${stockDot} ${name}
-                    </option>`
+/* render */
+materialSelect.innerHTML += `
+<option value="${name}">
+${stockDot} ${name}
+</option>`
+
+topLayerSelect.innerHTML += `
+<option value="${name}">
+${stockDot} ${name}
+</option>`
 
                 })
 
@@ -809,6 +1074,66 @@ async function loadMaterialsForEdit(order){
     // ✅ set selected values for edit
     materialSelect.value = order.materials
     topLayerSelect.value = order.topLayer || ""
+}
+
+function filterEditMaterialOptions(){
+
+    const text = document.getElementById("editMaterialSearch").value.toLowerCase()
+
+    const filtered = allMaterials.filter(m =>
+        m.name.toLowerCase().includes(text)
+    )
+
+    renderEditMaterialOptions(filtered.length ? filtered : allMaterials)
+}
+
+function filterEditTopLayerOptions(){
+
+    const text = document.getElementById("editTopLayerSearch").value.toLowerCase()
+
+    const filtered = allTopLayers.filter(m =>
+        m.name.toLowerCase().includes(text)
+    )
+
+    renderEditTopLayerOptions(filtered.length ? filtered : allTopLayers)
+}
+
+function renderEditMaterialOptions(list){
+
+    const select = document.getElementById("editMaterial")
+    const selected = select.value   // 🔥 preserve selection
+
+    select.innerHTML = ""
+
+    list.forEach(m=>{
+        let dot = stockIndicator(m.stock)
+
+        select.innerHTML += `
+        <option value="${m.name}">
+            ${dot} ${m.name}
+        </option>`
+    })
+
+    select.value = selected   // 🔥 restore selection
+}
+
+function renderEditTopLayerOptions(list){
+
+    const select = document.getElementById("editTopLayer")
+    const selected = select.value
+
+    select.innerHTML = "<option value=''>None</option>"
+
+    list.forEach(m=>{
+        let dot = stockIndicator(m.stock)
+
+        select.innerHTML += `
+        <option value="${m.name}">
+            ${dot} ${m.name}
+        </option>`
+    })
+
+    select.value = selected
 }
 
 async function saveOrderEdit(){
@@ -910,6 +1235,76 @@ box.style.display = box.style.display === "none" ? "block" : "none"
 
 }
 
+async function openPaymentHistory(clientId){
+
+    document.getElementById("paymentHistoryModal").style.display = "flex"
+
+    const container = document.getElementById("paymentHistoryList")
+    container.innerHTML = "Loading..."
+
+    try{
+
+        const res = await fetch(`/api/payments/client/${clientId}`)
+        const payments = await res.json()
+
+        payments.sort((a,b)=>
+            new Date(b.paidAt) - new Date(a.paidAt)
+        )
+
+        renderPaymentHistory(payments)
+
+    }catch(e){
+        container.innerHTML = "Failed to load payments"
+    }
+}
+
+function closePaymentHistory(){
+    document.getElementById("paymentHistoryModal").style.display = "none"
+}
+
+function renderPaymentHistory(payments){
+
+    const container = document.getElementById("paymentHistoryList")
+
+    if(!payments.length){
+        container.innerHTML = "No payments found"
+        return
+    }
+
+    let html = `
+    <table class="exp-table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Order ID</th>
+                <th>Amount</th>
+                <th>Type</th>
+            </tr>
+        </thead>
+        <tbody>
+    `
+
+    payments.forEach(p => {
+
+        html += `
+        <tr>
+            <td>${formatDisplayDate(new Date(p.paidAt))}</td>
+            <td>#${p.orderId}</td>
+            <td><b>₹${p.amount}</b></td>
+            <td>
+    <span class="payment-type type-${p.paymentType}">
+        ${p.paymentType}
+    </span>
+</td>
+        </tr>
+        `
+    })
+
+    html += `</tbody></table>`
+
+    container.innerHTML = html
+}
+
 /* ===============================
    FINANCE DASHBOARD
 ================================ */
@@ -975,49 +1370,102 @@ async function loadFinance(){
     const el = document.getElementById("todayRevenue")
     if(!el) return
 
-    el.innerHTML = `
-    <div style="display:flex;justify-content:space-between;">
-        <b>${displayDate}</b>
-        <div>
-            <button onclick="changeDay(-1)">◀</button>
-            <button onclick="changeDay(1)">▶</button>
-        </div>
-    </div>
+    const profitColor = (data.todayProfit || 0) >= 0 ? "#22c55e" : "#ef4444"
 
-    <div style="margin-top:10px">
-        Orders: <b>${data.todayOrders || 0}</b><br>
-        Revenue: <b>₹${data.todayRevenue || 0}</b><br>
-Expenses: <b>₹${data.todayExpenses || 0}</b><br>
-Profit: <b style="color:${(data.todayProfit||0)>=0?'green':'red'}">
-₹${data.todayProfit || 0}
-</b>
+    /* ===============================
+       TODAY CARD (PREMIUM)
+    =============================== */
+
+    el.innerHTML = `
+    <div class="finance-day">
+
+        <div class="finance-day-header">
+            <button class="nav-btn" onclick="changeDay(-1)">◀</button>
+
+            <div class="finance-date">${displayDate}</div>
+
+            <button class="nav-btn" onclick="changeDay(1)">▶</button>
+        </div>
+
+        <div class="finance-day-stats">
+
+            <div class="mini-kpi">
+                <div class="mini-title">Orders</div>
+                <div class="mini-value">${data.todayOrders || 0}</div>
+            </div>
+
+            <div class="mini-kpi revenue">
+                <div class="mini-title">Revenue</div>
+                <div class="mini-value">₹${data.todayRevenue || 0}</div>
+            </div>
+
+            <div class="mini-kpi expense">
+                <div class="mini-title">Expenses</div>
+                <div class="mini-value">₹${data.todayExpenses || 0}</div>
+            </div>
+
+            <div class="mini-kpi profit">
+                <div class="mini-title">Profit</div>
+                <div class="mini-value" style="color:${profitColor}">
+                    ₹${data.todayProfit || 0}
+                </div>
+            </div>
+
+        </div>
+
     </div>
     `
 
-    document.getElementById("totalOrders").innerHTML =
-        "Orders<br><b>" + (data.totalOrders || 0) + "</b>"
+    /* ===============================
+       MAIN KPI CARDS
+    =============================== */
 
-    document.getElementById("inProgress").innerHTML =
-        "In Progress<br><b>" + (data.inProgress || 0) + "</b>"
+    document.getElementById("totalOrders").innerHTML = `
+    <div class="kpi orders">
+        <div class="kpi-title">Total Orders</div>
+        <div class="kpi-value">${data.totalOrders || 0}</div>
+    </div>
+    `
 
-    document.getElementById("completed").innerHTML =
-        "Completed<br><b>" + (data.completed || 0) + "</b>"
+    document.getElementById("inProgress").innerHTML = `
+    <div class="kpi">
+        <div class="kpi-title">In Progress</div>
+        <div class="kpi-value">${data.inProgress || 0}</div>
+    </div>
+    `
 
-    document.getElementById("grossRevenue").innerHTML =
-        "Total Revenue<br><b>₹" + (data.totalRevenue || 0) + "</b>"
+    document.getElementById("completed").innerHTML = `
+    <div class="kpi">
+        <div class="kpi-title">Completed</div>
+        <div class="kpi-value">${data.completed || 0}</div>
+    </div>
+    `
 
-document.getElementById("totalExpenses").innerHTML =
-"Total Expenses<br><b>₹" + (data.totalExpenses || 0) + "</b>"
+    document.getElementById("grossRevenue").innerHTML = `
+    <div class="kpi revenue">
+        <div class="kpi-title">Total Revenue</div>
+        <div class="kpi-value">₹${data.totalRevenue || 0}</div>
+    </div>
+    `
 
-const profit = data.totalProfit || 0
+    document.getElementById("totalExpenses").innerHTML = `
+    <div class="kpi expense">
+        <div class="kpi-title">Total Expenses</div>
+        <div class="kpi-value">₹${data.totalExpenses || 0}</div>
+    </div>
+    `
 
-document.getElementById("profitStatus").innerHTML =
-    `Profit / Loss<br>
-    <b style="color:${profit >= 0 ? 'green' : 'red'}">
-        ₹${profit}
-    </b>`
+    const profit = data.totalProfit || 0
+
+    document.getElementById("profitStatus").innerHTML = `
+    <div class="kpi profit">
+        <div class="kpi-title">Profit / Loss</div>
+        <div class="kpi-value" style="color:${profit >= 0 ? '#22c55e' : '#ef4444'}">
+            ₹${profit}
+        </div>
+    </div>
+    `
 }
-
 /* ===============================
    DAY CONTROL
 ================================ */
@@ -1052,19 +1500,44 @@ async function loadMonthlyCard(){
 
     const m = data[key] || {}
 
+    const profitColor = (m.profit || 0) >= 0 ? "#22c55e" : "#ef4444"
+
     const el = document.getElementById("monthlyRevenue")
     if(!el) return
 
     el.innerHTML = `
-    <b>${key}-${year}</b>
+    <div class="finance-card">
 
-    <div style="margin-top:10px">
-        Orders: <b>${m.orders || 0}</b><br>
-        Revenue: <b>₹${m.revenue || 0}</b><br>
-        Expenses: <b>₹${m.expenses || 0}</b><br>
-        Profit: <b style="color:${(m.profit||0)>=0?'green':'red'}">
-            ₹${m.profit || 0}
-        </b>
+        <div class="finance-card-header">
+            <div>${key} ${year}</div>
+        </div>
+
+        <div class="finance-stats">
+
+            <div class="mini-kpi">
+                <div class="mini-title">Orders</div>
+                <div class="mini-value">${m.orders || 0}</div>
+            </div>
+
+            <div class="mini-kpi revenue">
+                <div class="mini-title">Revenue</div>
+                <div class="mini-value">₹${m.revenue || 0}</div>
+            </div>
+
+            <div class="mini-kpi expense">
+                <div class="mini-title">Expenses</div>
+                <div class="mini-value">₹${m.expenses || 0}</div>
+            </div>
+
+            <div class="mini-kpi profit">
+                <div class="mini-title">Profit</div>
+                <div class="mini-value" style="color:${profitColor}">
+                    ₹${m.profit || 0}
+                </div>
+            </div>
+
+        </div>
+
     </div>
     `
 }
@@ -1085,19 +1558,44 @@ async function loadYearlyCard(){
 
     const y = data[selectedYear] || {}
 
+    const profitColor = (y.profit || 0) >= 0 ? "#22c55e" : "#ef4444"
+
     const el = document.getElementById("yearlyRevenue")
     if(!el) return
 
     el.innerHTML = `
-    <b>${selectedYear}</b>
+    <div class="finance-card">
 
-    <div style="margin-top:10px">
-        Orders: <b>${y.orders || 0}</b><br>
-        Revenue: <b>₹${y.revenue || 0}</b><br>
-        Expenses: <b>₹${y.expenses || 0}</b><br>
-        Profit: <b style="color:${(y.profit||0)>=0?'green':'red'}">
-            ₹${y.profit || 0}
-        </b>
+        <div class="finance-card-header">
+            <div>${selectedYear}</div>
+        </div>
+
+        <div class="finance-stats">
+
+            <div class="mini-kpi">
+                <div class="mini-title">Orders</div>
+                <div class="mini-value">${y.orders || 0}</div>
+            </div>
+
+            <div class="mini-kpi revenue">
+                <div class="mini-title">Revenue</div>
+                <div class="mini-value">₹${y.revenue || 0}</div>
+            </div>
+
+            <div class="mini-kpi expense">
+                <div class="mini-title">Expenses</div>
+                <div class="mini-value">₹${y.expenses || 0}</div>
+            </div>
+
+            <div class="mini-kpi profit">
+                <div class="mini-title">Profit</div>
+                <div class="mini-value" style="color:${profitColor}">
+                    ₹${y.profit || 0}
+                </div>
+            </div>
+
+        </div>
+
     </div>
     `
 }
@@ -1151,6 +1649,15 @@ async function loadYearly(){
     const profit = labels.map(k => data[k].profit || 0)
 
     renderChartMulti(labels, revenue, expenses, profit)
+}
+
+function setActiveChart(btn){
+
+    document.querySelectorAll(".chart-btn").forEach(b=>{
+        b.classList.remove("active")
+    })
+
+    btn.classList.add("active")
 }
 
 function renderChartMulti(labels, revenue, expenses, profit){
@@ -1274,7 +1781,7 @@ function renderMaterials(){
          onmouseleave="hideMaterialInfo()">
 
       <div class="material-name">
-        <span id="icon-${parent.id}" onclick="toggleChildren(${parent.id})" style="cursor:pointer;">▶</span>
+        <span id="icon-${parent.id}" onclick="toggleChildren(${parent.id})" style="cursor:pointer;">📂</span>
         ${parent.name}
       </div>
 
@@ -1314,7 +1821,7 @@ function renderChildren(parentId){
 
       <div class="material-name">
         <span id="icon-${child.id}" onclick="toggleChildren(${child.id})" style="cursor:pointer;">
-          ${hasChildren ? "▶" : "•"}
+          ${hasChildren ? "📂" : "📄"}
         </span>
         ${child.name}
       </div>
@@ -1357,7 +1864,7 @@ function toggleChildren(id){
   el.style.display = isOpen ? "none" : "block"
 
   if(icon){
-    icon.innerText = isOpen ? "▶" : "▼"
+    icon.innerText = isOpen ? "📂" : "▶"
   }
 
 }
@@ -1423,7 +1930,7 @@ function searchMaterial(text){
 
       // reset icon
       const icon = document.getElementById("icon-" + parentId)
-      if(icon) icon.innerText = "▶"
+      if(icon) icon.innerText = "📂"
 
     }else{
 
@@ -1437,6 +1944,8 @@ function searchMaterial(text){
   })
 
 }
+
+
 
 
 //Expenses--
@@ -1462,21 +1971,68 @@ function renderExpenses() {
 
     expenses.forEach(e => {
 
+        let typeClass = ""
+        if(e.type === "MATERIAL") typeClass = "type-material"
+        if(e.type === "BILL") typeClass = "type-bill"
+        if(e.type === "PIGMY") typeClass = "type-pigmy"
+
         table.innerHTML += `
         <tr>
+
             <td>${e.date}</td>
+
             <td>${e.title}</td>
-            <td>${e.type}</td>
-            <td>${e.category}</td>
-            <td>₹${e.amount}</td>
-            <td>${e.fileUrl ? `<a href="${e.fileUrl}" target="_blank">View</a>` : "-"}</td>
+
             <td>
-                <button onclick="editExpense(${e.id})">Edit</button>
-                <button onclick="deleteExpense(${e.id})">Delete</button>
+                <span class="type-badge ${typeClass}">
+                    ${e.type}
+                </span>
             </td>
+
+            <td>
+                <span class="category-tag">
+                    ${e.category}
+                </span>
+            </td>
+
+            <td>
+                
+                    ${e.note}
+                
+            </td>
+
+            <td><b>₹${e.amount}</b></td>
+
+            <td>
+                ${e.fileUrl ? `
+                    ${e.fileUrl.match(/\.(jpg|jpeg|png|webp)$/i) ? `
+                        <img src="${e.fileUrl}" class="file-preview"
+                        onclick="previewExpenseFile('${e.fileUrl}')">
+                    ` : `
+                        <a href="${e.fileUrl}" target="_blank">📄 View</a>
+                    `}
+                ` : `-`}
+            </td>
+
+            <td>
+                <div class="exp-actions-btn">
+                    <button onclick="editExpense(${e.id})">Edit</button>
+                    <button onclick="deleteExpense(${e.id})">Delete</button>
+                </div>
+            </td>
+
         </tr>
         `
     })
+}
+
+function previewExpenseFile(url){
+    document.getElementById("filePreviewModal").style.display = "flex"
+    document.getElementById("expensePreviewImg").src = url
+}
+
+function closeFilePreview(){
+    document.getElementById("filePreviewModal").style.display = "none"
 }
 
 

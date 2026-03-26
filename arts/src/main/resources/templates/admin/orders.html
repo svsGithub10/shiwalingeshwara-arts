@@ -6,6 +6,8 @@
 
 <div class="toolbar">
 
+<div>
+
 <input
 type="text"
 class="search"
@@ -21,6 +23,7 @@ oninput="searchClients(this.value)">
 <label><input type="radio" name="filter" value="new"> Newly Added</label>
 <label><input type="radio" name="filter" value="name"> Name (A-Z)</label>
 
+</div>
 </div>
 
 <button class="add-btn" onclick="openNewOrder()">
@@ -39,25 +42,33 @@ oninput="searchClients(this.value)">
 <div id="clientEditModal" class="modal">
 
 <div class="modal-box">
+    <button 
+    class="modal-close"
+    onclick="this.closest('.modal').style.display='none'"
+    style="position:absolute; top:12px; right:12px;">
+    ✕
+</button>
 
-<h3>Edit Client</h3>
+
+
+
+<h3>Edit Client</h3><br>
 
 <input type="hidden" id="editClientId">
 
-<label>Name</label>
-<input id="editClientName">
 
-<label>Phone</label>
-<input id="editClientPhone">
+<input id="editClientName" placeholder="Name">
 
-<label>Email</label>
-<input id="editClientEmail">d
 
-<label>City</label>
-<input id="editClientCity">
+<input id="editClientPhone" placeholder="Phone number">
 
-<label>Address</label>
-<input id="editClientAddress">
+
+<input id="editClientEmail" placeholder="Email">
+
+
+<input id="editClientCity" placeholder="City">
+
+<input id="editClientAddress" placeholder="Address">
 
 <div class="modal-actions">
 
@@ -75,13 +86,30 @@ oninput="searchClients(this.value)">
 
 <div class="modal-box" style="width:900px">
 
+    <!-- HEADER BAR -->
+    <div class="modal-header">
+
+        <div class="orders-filter">
+<input type="date" id="filterOrderDate" onchange="filterOrders()" title="Order Date">
+<input type="date" id="filterDeliveredDate" onchange="filterOrders()" title="Delivered Date">
+            <button onclick="clearOrderFilters()">Clear</button>
+        </div>
+
+        <button class="modal-close" onclick="this.closest('.modal').style.display='none'">
+            ✕
+        </button>
+
+    </div>
+
+
 <h3 id="ordersClientName">Client Orders</h3>
 
+<div id="clientSummary" class="client-summary"></div>
 <div id="ordersList"></div>
 
 <div class="modal-actions">
 
-<button onclick="closeOrders()">Close</button>
+
 
 </div>
 
@@ -92,74 +120,113 @@ oninput="searchClients(this.value)">
 
 <div id="newOrderModal" class="modal">
 
-<div class="modal-box" style="width:500px">
+<div class="modal-box" style="width:500px; position:relative;">
 
-<h3>Create New Order</h3>
+<button 
+    class="modal-close"
+    onclick="this.closest('.modal').style.display='none'"
+    style="position:absolute; top:12px; right:12px;">
+    ✕
+</button>
 
-<label>Client Name</label>
-<input id="orderClientName">
+<h3>Create New Order</h3><br>
 
-<label>Phone</label>
-<input id="orderClientPhone">
+<input id="orderClientName" placeholder="Client Name">
 
-<label>City</label>
-<input id="orderClientCity">
+<input id="orderClientPhone" placeholder="Phone Number">
 
-<label>Work Type</label>
+<input id="orderClientCity" placeholder="City">
 
 <select id="orderWorkType">
-<option value="LASER_CUT">Laser Cut</option>
-<option value="LASER_ENGRAVE">Laser Engrave</option>
+    <option value="">Select Work Type</option>
+    <option value="LASER_CUT">Laser Cut</option>
+    <option value="LASER_ENGRAVE">Laser Engrave</option>
 </select>
 
-<label>Material</label>
-<select id="orderMaterial"></select>
+<!-- MATERIAL -->
+<div class="inline-field">
+    <input type="text" id="materialSearch" placeholder="Search Material..." oninput="filterMaterialOptions()">
+    <select id="orderMaterial"></select>
+</div>
 
-<label>Top layer</label>
-<select id="orderTopLayer">
-<option value="">None</option>
-</select>
+<!-- TOP LAYER -->
+<div class="inline-field">
+    <input type="text" id="topLayerSearch" placeholder="Search Material..." oninput="filterTopLayerOptions()">
+    <select id="orderTopLayer">
+        <option value="">None</option>
+    </select>
+</div>
 
-<label>Other additions</label><br>
-<textarea id="orderRemark"></textarea><br>
+<textarea id="orderRemark" placeholder="Other additions..."></textarea>
 
-<label>DXF File</label>
-<input type="file" id="orderDxf">
+<!-- DXF -->
+<div class="inline-field">
+    <span class="file-label">DXF</span>
+    <input type="file" id="orderDxf">
+</div>
 
-<label>Total Price</label>
-<input type="number" id="orderPrice">
+<input type="number" id="orderPrice" placeholder="Total Price">
 
-<!-- <label>Paid</label> -->
 <input type="hidden" id="orderAdvance" value="0">
 
 <div class="modal-actions">
-
-<button onclick="saveOrder()">Save Order</button>
-
-<button onclick="closeNewOrder()">Cancel</button>
-
+    <button onclick="saveOrder()">Save Order</button>
+    <button onclick="closeNewOrder()">Cancel</button>
 </div>
 
 </div>
-
 </div>
+
+<!-- Payment modal -->
 
 <div id="paymentModal" class="modal">
 
-<div class="modal-box">
+<div class="modal-box" style="width:420px; position:relative;">
 
-<h3>Make Payment</h3>
+<button 
+    class="modal-close"
+    onclick="closePayment()"
+    style="position:absolute; top:12px; right:12px;">
+    ✕
+</button>
+
+<h3>Make Payment</h3><br>
 
 <input type="hidden" id="payOrderId">
 
-<!-- 🔥 NEW -->
-<div id="payBalanceInfo" style="margin-bottom:10px;font-weight:600;"></div>
+<!-- BALANCE -->
+<div id="payBalanceInfo" class="pay-balance"></div>
+
+<div class="upi-field">
+
+    <label class="upi-label">Paying to</label>
+
+    <div class="upi-select-wrapper">
+        <select id="upiSelect" onchange="updateUPIQR()" class="upi-select">
+            <option value="8431983269@ybl">Shantveeresh Sheelavantar</option>
+            <option value="9448231988@ybl">Veeranna Sheelavantar</option>
+        </select>
+    </div>
+
+</div>
+
+<!-- QR SECTION -->
+<div class="qr-section">
+
+    <img id="upiQr" class="qr-img"><br>
+    
+
+    <!-- UPI LOGO -->
+    <img 
+        src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/UPI_logo.svg/1280px-UPI_logo.svg.png"
+        class="upi-logo">
+
+</div>
 
 <label>Amount</label>
-<input type="number" id="payAmount" value="">
+<input type="number" id="payAmount" oninput="updateUPIQR()">
 
-<!-- 🔥 NEW -->
-<div id="payError" style="color:red;font-size:12px;margin-bottom:10px;"></div>
+<div id="payError" class="pay-error"></div>
 
 <label>Type</label>
 <select id="payType">
@@ -175,60 +242,95 @@ oninput="searchClients(this.value)">
 </div>
 </div>
 
+
+<!-- Edit order modal -->
+
 <div id="editOrderModal" class="modal">
 
-<div class="modal-box">
+<div class="modal-box" style="position:relative; width:500px;">
 
-<h3>Edit Order</h3>
+<button 
+    class="modal-close"
+    onclick="this.closest('.modal').style.display='none'"
+    style="position:absolute; top:12px; right:12px;">
+    ✕
+</button>
+
+<h3>Edit Order</h3><br>
 
 <input type="hidden" id="editOrderId">
 
-<label>Work Type</label>
 <select id="editWorkType">
-<option value="LASER_CUT">Laser Cut</option>
-<option value="LASER_ENGRAVE">Laser Engrave</option>
+    <option value="">Select Work Type</option>
+    <option value="LASER_CUT">Laser Cut</option>
+    <option value="LASER_ENGRAVE">Laser Engrave</option>
 </select>
 
-<label>Material</label>
-<select id="editMaterial"></select>
+<!-- 🔍 MATERIAL -->
+<div class="inline-field">
+    <input type="text" id="editMaterialSearch" placeholder="Search Material..." oninput="filterEditMaterialOptions()">
+    <select id="editMaterial"></select>
+</div>
 
-<label>Top Layer</label>
-<select id="editTopLayer"></select>
+<!-- 🔍 TOP LAYER -->
+<div class="inline-field">
+    <input type="text" id="editTopLayerSearch" placeholder="Search Material..." oninput="filterEditTopLayerOptions()">
+    <select id="editTopLayer"></select>
+</div>
 
-<label>Other additions</label><br>
-<textarea id="editRemark"></textarea><br>
+<textarea id="editRemark" placeholder="Other additions..."></textarea>
 
-<label>Replace DXF</label>
-<input type="file" id="editDxf">
+<!-- DXF -->
+<div class="inline-field">
+    <span class="file-label">DXF</span>
+    <input type="file" id="editDxf">
+</div>
 
-<label>Price</label>
-<input type="number" id="editPrice">
+<input type="number" id="editPrice" placeholder="Total Price">
 
-<label>Paid</label>
-<input type="number" id="editAdvance">
+<input type="number" id="editAdvance" placeholder="Paid Amount">
 
-<label>Ordered Date</label>
 <input type="date" id="editCreatedAt">
 
 <div class="modal-actions">
-
-<button onclick="saveOrderEdit()">Save</button>
-<button onclick="closeEditOrder()">Cancel</button>
-
+    <button onclick="saveOrderEdit()">Save</button>
+    <button onclick="closeEditOrder()">Cancel</button>
 </div>
 
 </div>
-
 </div>
 
 <div id="imagePreviewModal" class="modal">
 <div class="modal-box" style="width:500px">
+            <button 
+    class="modal-close"
+    onclick="this.closest('.modal').style.display='none'"
+    style="position:absolute; top:12px; right:12px;">
+    ✕
+</button>
 
 <img id="previewImg" style="width:100%">
 
-<div class="modal-actions">
-<button onclick="closePreview()">Close</button>
-</div>
+
 
 </div>
 </div>
+
+<div id="paymentHistoryModal" class="modal">
+
+<div class="modal-box" style="width:700px; position:relative;">
+
+<button 
+    class="modal-close"
+    onclick="closePaymentHistory()"
+    style="position:absolute; top:12px; right:12px;">
+    ✕
+</button>
+
+<h3>Payment History</h3>
+
+<div id="paymentHistoryList" class="table-card"></div>
+
+</div>
+</div>
+

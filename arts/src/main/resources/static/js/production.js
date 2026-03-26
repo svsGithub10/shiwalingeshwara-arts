@@ -1,3 +1,26 @@
+function toggleTheme(){
+
+    const body = document.body
+
+    body.classList.toggle("dark")
+
+    // save preference
+    localStorage.setItem("theme",
+        body.classList.contains("dark") ? "dark" : "light"
+    )
+}
+
+// load saved theme
+window.addEventListener("DOMContentLoaded", ()=>{
+
+    const saved = localStorage.getItem("theme")
+
+    if(saved === "dark"){
+        document.body.classList.add("dark")
+    }
+
+})
+
 function loadProdPage(page){
 
 fetch("/production/"+page)
@@ -60,25 +83,43 @@ window.location.href="/"
 }
 
 
-/* TOAST */
 
-function showToast(message){
+/* SIMPLE TOAST */
 
-let toast = document.createElement("div")
+function showToast(message, type="success"){
 
-toast.innerText = message
-toast.style.position="fixed"
-toast.style.bottom="30px"
-toast.style.right="30px"
-toast.style.background="#333"
-toast.style.color="white"
-toast.style.padding="12px 18px"
-toast.style.borderRadius="6px"
+    // container (for stacking)
+    let container = document.getElementById("toastContainer")
 
-document.body.appendChild(toast)
+    if(!container){
+        container = document.createElement("div")
+        container.id = "toastContainer"
+        container.style.position = "fixed"
+        container.style.bottom = "20px"
+        container.style.right = "20px"
+        container.style.display = "flex"
+        container.style.flexDirection = "column"
+        container.style.gap = "10px"
+        container.style.zIndex = "9999"
+        document.body.appendChild(container)
+    }
 
-setTimeout(()=>toast.remove(),3000)
+    // toast
+    let toast = document.createElement("div")
+    toast.className = `toast toast-${type}`
 
+    toast.innerHTML = `
+        <span>${message}</span>
+        <button onclick="this.parentElement.remove()">✕</button>
+    `
+
+    container.appendChild(toast)
+
+    // auto remove
+    setTimeout(()=>{
+        toast.classList.add("hide")
+        setTimeout(()=>toast.remove(),300)
+    },3000)
 }
 
 
@@ -133,46 +174,53 @@ return total
 function renderMaterials(){
 
 const container = document.getElementById("materialsContainer")
-container.innerHTML=""
+container.innerHTML = ""
 
 const parents = materialsCache.filter(m => m.parentId == null)
 
 parents.forEach(parent=>{
 
-const parentStock = calculateStock(parent.id)
-
 container.innerHTML += `
-<div class="material-row">
 
-<div class="material-name">
+<div class="mat-card">
 
-<button onclick="toggleChildren(${parent.id})">▼</button>
+    <!-- HEADER -->
+    <div class="mat-header" onclick="toggleMat(${parent.id})">
 
-${parent.name}
+        <div class="mat-title">
+            ${parent.name}
+        </div>
 
-<button onclick="openAddMaterial(${parent.id})">+</button>
+<div class="mat-right">
+
+    ${getStockBadge(calculateStockStatus(parent.id))}
+
+    <button onclick="event.stopPropagation();openAddMaterial(${parent.id})" class="mat-add" title="Add">
+        <span>＋</span>
+    </button>
+
+    <button onclick="event.stopPropagation();openEditMaterial(${parent.id})" class="mat-edit" title="Edit">
+        ✎
+    </button>
+
+    <button onclick="event.stopPropagation();deleteMaterial(${parent.id})" class="mat-delete" title="Delete">
+        ✕
+    </button>
+
+    <span class="mat-arrow" id="arrow-${parent.id}"></span>
 
 </div>
 
-<div class="stock">
-${getStockBadge(calculateStockStatus(parent.id))}
-</div>
+    </div>
 
-<div class="actions">
-
-<button onclick="openEditMaterial(${parent.id})">Edit</button>
-
-<button onclick="deleteMaterial(${parent.id})">Delete</button>
+    <!-- CHILDREN -->
+    <div class="mat-body" id="mat-${parent.id}">
+        ${renderMatChildren(parent.id)}
+    </div>
 
 </div>
 
-</div>
-
-<div id="children-${parent.id}" style="display:none"></div>
 `
-
-renderChildren(parent.id)
-
 })
 
 }
@@ -222,74 +270,66 @@ return "OUT_OF_STOCK"
 
 /* -------- RENDER CHILDREN -------- */
 
-function renderChildren(parentId){
-
-const container = document.getElementById("children-"+parentId)
+function renderMatChildren(parentId){
 
 const children = materialsCache.filter(m => m.parentId == parentId)
 
-let html=""
+let html = ""
 
 children.forEach(child=>{
 
-const stock = calculateStock(child.id)
 const hasChildren = materialsCache.some(m => m.parentId == child.id)
 
 html += `
-<div class="material-row child">
 
-<div class="material-name">
+<div class="mat-child">
 
-<button onclick="toggleChildren(${child.id})">▼</button>
+    <div class="mat-child-header" onclick="toggleMat(${child.id})">
 
-${child.name}
+        <span>${child.name}</span>
 
-<button onclick="openAddMaterial(${child.id})">+</button>
+        <div class="mat-right">
+
+            ${hasChildren 
+                ? getStockBadge(calculateStockStatus(child.id))
+                : `
+                <select class="stock-input"
+                onchange="updateStock(${child.id},this.value)">
+                    <option value="IN_STOCK" ${child.stockStatus==="IN_STOCK"?"selected":""}>🟢</option>
+                    <option value="LOW_STOCK" ${child.stockStatus==="LOW_STOCK"?"selected":""}>🟡</option>
+                    <option value="OUT_OF_STOCK" ${child.stockStatus==="OUT_OF_STOCK"?"selected":""}>🔴</option>
+                </select>`
+            }
+
+            <button onclick="event.stopPropagation();openAddMaterial(${child.id})" class="mat-add">＋</button>
+                <button onclick="event.stopPropagation();openEditMaterial(${child.id})" class="mat-edit" title="Edit">
+        ✎
+    </button>
+
+    <button onclick="event.stopPropagation();deleteMaterial(${child.id})" class="mat-delete" title="Delete">
+        ✕
+    </button>
+
+            ${hasChildren ? `<span class="mat-arrow" id="arrow-${child.id}"></span>` : ``}
+
+        </div>
+
+    </div>
+
+    ${hasChildren ? `
+    <div class="mat-sub" id="mat-${child.id}">
+        ${renderMatChildren(child.id)}
+    </div>
+    ` : ``}
 
 </div>
 
-<div class="stock">
-
-${hasChildren 
-? getStockBadge(calculateStockStatus(child.id)) 
-: `
-<select
-class="stock-input"
-onchange="updateStock(${child.id},this.value)">
-
-<option value="IN_STOCK" ${child.stockStatus==="IN_STOCK"?"selected":""}>🟢</option>
-<option value="LOW_STOCK" ${child.stockStatus==="LOW_STOCK"?"selected":""}>🟡</option>
-<option value="OUT_OF_STOCK" ${child.stockStatus==="OUT_OF_STOCK"?"selected":""}>🔴</option>
-
-</select>
-`}
-
-</div>
-
-<div class="actions">
-
-<button onclick="openEditMaterial(${child.id})">Edit</button>
-
-<button onclick="deleteMaterial(${child.id})">Delete</button>
-
-</div>
-
-</div>
-
-<div id="children-${child.id}" style="display:none"></div>
 `
 
 })
 
-container.innerHTML = html
-
-children.forEach(child=>{
-renderChildren(child.id)
-})
-
+return html
 }
-
-
 /* -------- DROPDOWN -------- */
 
 function toggleChildren(id){
@@ -301,6 +341,27 @@ if(!el) return
 el.style.display = el.style.display === "none" ? "block" : "none"
 
 }
+
+function toggleMat(id){
+
+const el = document.getElementById("mat-"+id)
+const arrow = document.getElementById("arrow-"+id)
+
+if(!el) return
+
+const isOpen = el.style.display === "block"
+
+el.style.display = isOpen ? "none" : "block"
+
+if(arrow){
+    arrow.style.transform = isOpen 
+        ? "rotate(45deg)" 
+        : "rotate(225deg)"
+}
+
+}
+
+
 
 
 /* -------- STOCK UPDATE -------- */
@@ -459,52 +520,51 @@ loadMaterials()
 
 function searchMaterial(text){
 
-  text = text.toLowerCase()
+text = text.toLowerCase()
 
-  // reset if empty
-  if(text === ""){
-    renderMaterials()
-    return
-  }
+const cards = document.querySelectorAll(".mat-card")
 
-  const container = document.getElementById("materialsContainer")
+cards.forEach(card=>{
 
-  // only select root rows (parents)
-  const parentRows = container.querySelectorAll(":scope > .material-row")
+    const title = card.querySelector(".mat-title")?.innerText.toLowerCase()
 
-  parentRows.forEach(parentRow => {
+    const body = card.querySelector(".mat-body")
 
-    const name = parentRow
-      .querySelector(".material-name")
-      .innerText
-      .toLowerCase()
+    const allText = card.innerText.toLowerCase()
 
-    const parentId = parentRow
-      .querySelector("button")
-      ?.getAttribute("onclick")
-      ?.match(/\d+/)?.[0]
-
-    const childrenBox = document.getElementById("children-" + parentId)
-
-    if(name.includes(text)){
-
-      parentRow.style.display = "flex"
-
-      // keep default collapsed state
-      if(childrenBox) childrenBox.style.display = "none"
-
-    }else{
-
-      parentRow.style.display = "none"
-
-      // hide its children also
-      if(childrenBox) childrenBox.style.display = "none"
-
+    if(text === ""){
+        card.style.display = "block"
+        if(body) body.style.display = "none"
+        renderMaterials()
+        return
     }
 
-  })
+    if(allText.includes(text)){
+
+        card.style.display = "block"
+
+        // 🔥 auto open
+        if(body) body.style.display = "block"
+
+        // open all nested
+        card.querySelectorAll(".mat-sub").forEach(el=>{
+            el.style.display = "block"
+        })
+
+        highlightMatch(card, text)
+
+    }else{
+        card.style.display = "none"
+    }
+
+})
 
 }
+
+
+
+
+//ORDERS--
 
 async function loadProductionOrders(){
 
@@ -518,6 +578,8 @@ renderProductionOrders(orders)
 
 }
 
+
+
 function renderProductionOrders(orders){
 
 const container = document.getElementById("productionOrders")
@@ -529,53 +591,111 @@ return
 
 container.innerHTML=""
 
+// 🔥 newest first
+orders.sort((a,b)=> new Date(b.createdAt) - new Date(a.createdAt))
+
 orders.forEach(o=>{
+
+let statusClass = "status-created"
+if(o.status==="IN_PROGRESS") statusClass="status-progress"
+if(o.status==="COMPLETED") statusClass="status-complete"
+if(o.status==="DELIVERED") statusClass="status-delivered"
 
 container.innerHTML += `
 
-<div class="material-row">
+<div class="prod-card">
 
-<!-- ORDER -->
-<div>
-<b>#${o.id}</b><br>
-${o.materials || ""}
-</div>
+    <!-- LEFT -->
+    <div class="prod-left">
 
-<!-- STATUS -->
-<div>${o.status}</div>
+        <div class="prod-id">#${o.id}</div>
 
-<!-- RESULT PREVIEW -->
-<div>
-${o.resultImage ? `
-<img src="/api/orders/view-result?path=${encodeURIComponent(o.resultImage)}"
-style="width:45px;height:45px;border-radius:6px;object-fit:cover;cursor:pointer"
-onclick="previewImage('${o.resultImage}')">
-` : `<span style="color:#aaa;font-size:12px;">No Image</span>`}
-</div>
+        <div class="prod-info">
+            <b>Material:</b> ${o.materials || "-"} <br>
+            <b>Material 2:</b> ${o.topLayer || "-"} <br>
+            <b>Remark:</b> ${o.remark || "-"} <br>
+            <b>Date:</b> ${o.createdAt ? new Date(o.createdAt).toLocaleDateString() : "-"}
+        </div>
 
-<!-- ACTIONS -->
-<div class="actions">
+        <!-- STATUS BOTTOM -->
+        <div class="status-pill ${statusClass}">
+            ${o.status}
+        </div>
 
-${o.dxfFile ? `
-<button onclick="downloadDxf(${o.id})">
-📁 ${o.dxfFile.split('/').pop()}
-</button>
-` : `<span style="color:#aaa;">No DXF</span>`}
+    </div>
 
-<label class="upload-btn">
-${o.resultImage ? "Reupload" : "Upload"}
-<input type="file" onchange="uploadResult(${o.id},this)" hidden>
-</label>
+    <!-- RIGHT -->
+    <div class="prod-right">
 
-</div>
+        <!-- IMAGE TOP -->
+        <div class="prod-image-box">
+            ${o.resultImage ? `
+            <img src="/api/orders/view-result?path=${encodeURIComponent(o.resultImage)}"
+            class="prod-image"
+            onclick="previewImage('${o.resultImage}')">
+            ` : `<div class="no-image">Result Preview</div>`}
+        </div>
+
+        <!-- ACTIONS BOTTOM -->
+        <div class="prod-actions-row">
+
+            ${o.dxfFile ? `
+            <button onclick="downloadDxf(${o.id})">
+                📁 DXF
+            </button>
+            ` : `<span class="no-file">No DXF</span>`}
+
+            <label class="upload-btn">
+                ${o.resultImage ? "Reupload" : "Upload"}
+                <input type="file" onchange="uploadResult(${o.id},this)" hidden>
+            </label>
+
+        </div>
+
+    </div>
 
 </div>
 
 `
-
 })
 
 }
+
+function refreshProduction(){
+    loadProductionOrders()
+}
+
+function previewImage(path){
+
+document.getElementById("imagePreviewModal").style.display="flex"
+
+document.getElementById("previewImg").src =
+"/api/orders/view-result?path=" + encodeURIComponent(path)
+
+}
+
+function closePreview(){
+document.getElementById("imagePreviewModal").style.display="none"
+}
+
+let prodInterval
+
+function startAutoRefresh(){
+    prodInterval = setInterval(loadProductionOrders, 10000)
+}
+
+function stopAutoRefresh(){
+    clearInterval(prodInterval)
+}
+
+document.addEventListener("visibilitychange", ()=>{
+    if(document.hidden){
+        stopAutoRefresh()
+    }else{
+        startAutoRefresh()
+    }
+})
+
 function downloadDxf(id){
 
 const link = document.createElement("a")
@@ -586,7 +706,7 @@ document.body.appendChild(link)
 link.click()
 document.body.removeChild(link)
 
-loadProdPage()
+setTimeout(refreshProduction, 800)
 
 }
 
@@ -682,49 +802,102 @@ async function loadFinance(){
     const el = document.getElementById("todayRevenue")
     if(!el) return
 
-    el.innerHTML = `
-    <div style="display:flex;justify-content:space-between;">
-        <b>${displayDate}</b>
-        <div>
-            <button onclick="changeDay(-1)">◀</button>
-            <button onclick="changeDay(1)">▶</button>
-        </div>
-    </div>
+    const profitColor = (data.todayProfit || 0) >= 0 ? "#22c55e" : "#ef4444"
 
-    <div style="margin-top:10px">
-        Orders: <b>${data.todayOrders || 0}</b><br>
-        Revenue: <b>₹${data.todayRevenue || 0}</b><br>
-Expenses: <b>₹${data.todayExpenses || 0}</b><br>
-Profit: <b style="color:${(data.todayProfit||0)>=0?'green':'red'}">
-₹${data.todayProfit || 0}
-</b>
+    /* ===============================
+       TODAY CARD (PREMIUM)
+    =============================== */
+
+    el.innerHTML = `
+    <div class="finance-day">
+
+        <div class="finance-day-header">
+            <button class="nav-btn" onclick="changeDay(-1)">◀</button>
+
+            <div class="finance-date">${displayDate}</div>
+
+            <button class="nav-btn" onclick="changeDay(1)">▶</button>
+        </div>
+
+        <div class="finance-day-stats">
+
+            <div class="mini-kpi">
+                <div class="mini-title">Orders</div>
+                <div class="mini-value">${data.todayOrders || 0}</div>
+            </div>
+
+            <div class="mini-kpi revenue">
+                <div class="mini-title">Revenue</div>
+                <div class="mini-value">₹${data.todayRevenue || 0}</div>
+            </div>
+
+            <div class="mini-kpi expense">
+                <div class="mini-title">Expenses</div>
+                <div class="mini-value">₹${data.todayExpenses || 0}</div>
+            </div>
+
+            <div class="mini-kpi profit">
+                <div class="mini-title">Profit</div>
+                <div class="mini-value" style="color:${profitColor}">
+                    ₹${data.todayProfit || 0}
+                </div>
+            </div>
+
+        </div>
+
     </div>
     `
 
-    document.getElementById("totalOrders").innerHTML =
-        "Orders<br><b>" + (data.totalOrders || 0) + "</b>"
+    /* ===============================
+       MAIN KPI CARDS
+    =============================== */
 
-    document.getElementById("inProgress").innerHTML =
-        "In Progress<br><b>" + (data.inProgress || 0) + "</b>"
+    document.getElementById("totalOrders").innerHTML = `
+    <div class="kpi orders">
+        <div class="kpi-title">Total Orders</div>
+        <div class="kpi-value">${data.totalOrders || 0}</div>
+    </div>
+    `
 
-    document.getElementById("completed").innerHTML =
-        "Completed<br><b>" + (data.completed || 0) + "</b>"
+    document.getElementById("inProgress").innerHTML = `
+    <div class="kpi">
+        <div class="kpi-title">In Progress</div>
+        <div class="kpi-value">${data.inProgress || 0}</div>
+    </div>
+    `
 
-    document.getElementById("grossRevenue").innerHTML =
-        "Total Revenue<br><b>₹" + (data.totalRevenue || 0) + "</b>"
+    document.getElementById("completed").innerHTML = `
+    <div class="kpi">
+        <div class="kpi-title">Completed</div>
+        <div class="kpi-value">${data.completed || 0}</div>
+    </div>
+    `
 
-document.getElementById("totalExpenses").innerHTML =
-"Total Expenses<br><b>₹" + (data.totalExpenses || 0) + "</b>"
+    document.getElementById("grossRevenue").innerHTML = `
+    <div class="kpi revenue">
+        <div class="kpi-title">Total Revenue</div>
+        <div class="kpi-value">₹${data.totalRevenue || 0}</div>
+    </div>
+    `
 
-const profit = data.totalProfit || 0
+    document.getElementById("totalExpenses").innerHTML = `
+    <div class="kpi expense">
+        <div class="kpi-title">Total Expenses</div>
+        <div class="kpi-value">₹${data.totalExpenses || 0}</div>
+    </div>
+    `
 
-document.getElementById("profitStatus").innerHTML =
-    `Profit / Loss<br>
-    <b style="color:${profit >= 0 ? 'green' : 'red'}">
-        ₹${profit}
-    </b>`
+    const profit = data.totalProfit || 0
+
+    document.getElementById("profitStatus").innerHTML = `
+    <div class="kpi profit">
+        <div class="kpi-title">Profit / Loss</div>
+        <div class="kpi-value" style="color:${profit >= 0 ? '#22c55e' : '#ef4444'}">
+            ₹${profit}
+        </div>
+    </div>
+    `
 }
-
 /* ===============================
    DAY CONTROL
 ================================ */
@@ -759,19 +932,44 @@ async function loadMonthlyCard(){
 
     const m = data[key] || {}
 
+    const profitColor = (m.profit || 0) >= 0 ? "#22c55e" : "#ef4444"
+
     const el = document.getElementById("monthlyRevenue")
     if(!el) return
 
     el.innerHTML = `
-    <b>${key}-${year}</b>
+    <div class="finance-card">
 
-    <div style="margin-top:10px">
-        Orders: <b>${m.orders || 0}</b><br>
-        Revenue: <b>₹${m.revenue || 0}</b><br>
-        Expenses: <b>₹${m.expenses || 0}</b><br>
-        Profit: <b style="color:${(m.profit||0)>=0?'green':'red'}">
-            ₹${m.profit || 0}
-        </b>
+        <div class="finance-card-header">
+            <div>${key} ${year}</div>
+        </div>
+
+        <div class="finance-stats">
+
+            <div class="mini-kpi">
+                <div class="mini-title">Orders</div>
+                <div class="mini-value">${m.orders || 0}</div>
+            </div>
+
+            <div class="mini-kpi revenue">
+                <div class="mini-title">Revenue</div>
+                <div class="mini-value">₹${m.revenue || 0}</div>
+            </div>
+
+            <div class="mini-kpi expense">
+                <div class="mini-title">Expenses</div>
+                <div class="mini-value">₹${m.expenses || 0}</div>
+            </div>
+
+            <div class="mini-kpi profit">
+                <div class="mini-title">Profit</div>
+                <div class="mini-value" style="color:${profitColor}">
+                    ₹${m.profit || 0}
+                </div>
+            </div>
+
+        </div>
+
     </div>
     `
 }
@@ -792,19 +990,44 @@ async function loadYearlyCard(){
 
     const y = data[selectedYear] || {}
 
+    const profitColor = (y.profit || 0) >= 0 ? "#22c55e" : "#ef4444"
+
     const el = document.getElementById("yearlyRevenue")
     if(!el) return
 
     el.innerHTML = `
-    <b>${selectedYear}</b>
+    <div class="finance-card">
 
-    <div style="margin-top:10px">
-        Orders: <b>${y.orders || 0}</b><br>
-        Revenue: <b>₹${y.revenue || 0}</b><br>
-        Expenses: <b>₹${y.expenses || 0}</b><br>
-        Profit: <b style="color:${(y.profit||0)>=0?'green':'red'}">
-            ₹${y.profit || 0}
-        </b>
+        <div class="finance-card-header">
+            <div>${selectedYear}</div>
+        </div>
+
+        <div class="finance-stats">
+
+            <div class="mini-kpi">
+                <div class="mini-title">Orders</div>
+                <div class="mini-value">${y.orders || 0}</div>
+            </div>
+
+            <div class="mini-kpi revenue">
+                <div class="mini-title">Revenue</div>
+                <div class="mini-value">₹${y.revenue || 0}</div>
+            </div>
+
+            <div class="mini-kpi expense">
+                <div class="mini-title">Expenses</div>
+                <div class="mini-value">₹${y.expenses || 0}</div>
+            </div>
+
+            <div class="mini-kpi profit">
+                <div class="mini-title">Profit</div>
+                <div class="mini-value" style="color:${profitColor}">
+                    ₹${y.profit || 0}
+                </div>
+            </div>
+
+        </div>
+
     </div>
     `
 }
@@ -860,6 +1083,15 @@ async function loadYearly(){
     renderChartMulti(labels, revenue, expenses, profit)
 }
 
+function setActiveChart(btn){
+
+    document.querySelectorAll(".chart-btn").forEach(b=>{
+        b.classList.remove("active")
+    })
+
+    btn.classList.add("active")
+}
+
 function renderChartMulti(labels, revenue, expenses, profit){
 
     const ctx = document.getElementById("financeChart")
@@ -902,6 +1134,7 @@ function loadFinanceDashboard(){
 }
 
 
+
 //Expenses--
 
 let expenses = []
@@ -925,21 +1158,68 @@ function renderExpenses() {
 
     expenses.forEach(e => {
 
+        let typeClass = ""
+        if(e.type === "MATERIAL") typeClass = "type-material"
+        if(e.type === "BILL") typeClass = "type-bill"
+        if(e.type === "PIGMY") typeClass = "type-pigmy"
+
         table.innerHTML += `
         <tr>
+
             <td>${e.date}</td>
+
             <td>${e.title}</td>
-            <td>${e.type}</td>
-            <td>${e.category}</td>
-            <td>₹${e.amount}</td>
-            <td>${e.fileUrl ? `<a href="${e.fileUrl}" target="_blank">View</a>` : "-"}</td>
+
             <td>
-                <button onclick="editExpense(${e.id})">Edit</button>
-                <button onclick="deleteExpense(${e.id})">Delete</button>
+                <span class="type-badge ${typeClass}">
+                    ${e.type}
+                </span>
             </td>
+
+            <td>
+                <span class="category-tag">
+                    ${e.category}
+                </span>
+            </td>
+
+            <td>
+                
+                    ${e.note}
+                
+            </td>
+
+            <td><b>₹${e.amount}</b></td>
+
+            <td>
+                ${e.fileUrl ? `
+                    ${e.fileUrl.match(/\.(jpg|jpeg|png|webp)$/i) ? `
+                        <img src="${e.fileUrl}" class="file-preview"
+                        onclick="previewExpenseFile('${e.fileUrl}')">
+                    ` : `
+                        <a href="${e.fileUrl}" target="_blank">📄 View</a>
+                    `}
+                ` : `-`}
+            </td>
+
+            <td>
+                <div class="exp-actions-btn">
+                    <button onclick="editExpense(${e.id})">Edit</button>
+                    <button onclick="deleteExpense(${e.id})">Delete</button>
+                </div>
+            </td>
+
         </tr>
         `
     })
+}
+
+function previewExpenseFile(url){
+    document.getElementById("filePreviewModal").style.display = "flex"
+    document.getElementById("expensePreviewImg").src = url
+}
+
+function closeFilePreview(){
+    document.getElementById("filePreviewModal").style.display = "none"
 }
 
 

@@ -12,22 +12,30 @@
 
 <div class="admin-container">
 
-<!-- SIDEBAR -->
 
-<aside class="sidebar">
 
-<h2>Production Panel</h2>
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
 
-<button onclick="loadProdPage('orders')">Orders</button>
-<button onclick="loadProdPage('materials')">Materials</button>
-<button onclick="loadProdPage('finance')">Finance</button>
-<button onclick="loadProdPage('expenses')">Expenses</button>
+        <div class="logo">
+            <img src="/images/logo.png">
+            <span>Shivalingeshwara Arts</span>
+        </div>
 
-<hr>
+        <button onclick="toggleTheme()">🌙 Toggle Theme</button>
 
-<button onclick="logout()">Logout</button>
+  
+        <!-- <button onclick="loadPage('users')">Users/Customers</button> -->
+        <button onclick="loadProdPage('orders')">Orders</button>
+        <button onclick="loadProdPage('materials')">Materials</button>
+        <button onclick="loadProdPage('finance')">Finance</button>
+        <button onclick="loadProdPage('expenses')">Expenses</button>
 
-</aside>
+        <hr>
+
+        <button onclick="logout()">Logout</button>
+
+    </aside>
 
 
 <!-- MAIN -->
@@ -46,6 +54,7 @@
 
 <script src="/js/production.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 
 </body>
 </html>

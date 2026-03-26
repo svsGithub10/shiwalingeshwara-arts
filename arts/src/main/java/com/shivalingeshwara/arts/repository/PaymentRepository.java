@@ -11,4 +11,8 @@ public interface PaymentRepository extends JpaRepository<Payment,Long>{
 
     void deleteByOrderId(Long orderId);
 
+    List<Payment> findByOrderIdIn(List<Long> orderIds);
+
+    void deleteByOrderIdIn(List<Long> orderIds);
+
 }
