@@ -11,13 +11,13 @@ public class ShivalingeshwaraArtsApplication {
 		SpringApplication.run(ShivalingeshwaraArtsApplication.class, args);
 	
 
-	        // Auto open browser
-        try {
-            Thread.sleep(5000); // wait for server to start
-            Runtime.getRuntime().exec("rundll32 url.dll,FileProtocolHandler http://localhost:8080");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+	    // Auto open browser
+        // try {
+        //     Thread.sleep(5000); // wait for server to start
+        //     Runtime.getRuntime().exec("rundll32 url.dll,FileProtocolHandler http://localhost:8080");
+        // } catch (Exception e) {
+        //     e.printStackTrace();
+        // }
 	}
 }
  

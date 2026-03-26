@@ -1,9 +1,34 @@
 
 
-function openLogin(){
+async function openLogin(){
 
-document.getElementById("loginModal").style.display="flex";
+    try{
+        const res = await fetch("/api/auth/session");
 
+        const user = await res.json();
+
+        // ✅ if already logged in (auto-login worked)
+        if(user.userId){
+
+            if(user.role === "SUPER_ADMIN"){
+                window.location.href = "/order";
+            }
+            else if(user.role === "ADMIN"){
+                window.location.href = "/production";
+            }
+            else{
+                window.location.href = "/dashboard"; // client
+            }
+
+        }else{
+            // ❌ not logged in → show modal
+            document.getElementById("loginModal").style.display = "flex";
+        }
+
+    }catch(e){
+        // fallback
+        document.getElementById("loginModal").style.display = "flex";
+    }
 }
 
 function closeLogin(){
@@ -103,7 +128,6 @@ emailInput.addEventListener("blur", async () => {
     }
 
 });
-
 document.getElementById("loginForm").addEventListener("submit", async function(e){
 
     e.preventDefault();
@@ -111,36 +135,40 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
 
+    // ✅ FIXED (get latest value at click time)
+    const rememberMe = document.getElementById("rememberMe").checked;
+
     const res = await fetch("/api/auth/login",{
         method:"POST",
         headers:{
             "Content-Type":"application/json"
         },
-        body:JSON.stringify({email,password})
+        body: JSON.stringify({
+            email,
+            password,
+            rememberMe: rememberMe.toString()
+        })
     });
 
     const data = await res.json();
 
-if(data.success){
+    if(data.success){
 
-fetch("/api/auth/session")
-.then(res=>res.json())
-.then(user=>{
+        fetch("/api/auth/session")
+        .then(res=>res.json())
+        .then(user=>{
 
-if(user.role === "SUPER_ADMIN"){
-window.location.href="/order"
-}
+            if(user.role === "SUPER_ADMIN"){
+                window.location.href="/order";
+            }
+            else if(user.role === "ADMIN"){
+                window.location.href="/production";
+            }
 
-else if(user.role === "ADMIN"){
-window.location.href="/production"
-}
+        });
 
-})
-
-}else{
-
+    }else{
         document.getElementById("loginMessage").innerText = "Invalid password";
-
     }
 
 });
