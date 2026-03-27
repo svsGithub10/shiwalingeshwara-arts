@@ -1272,6 +1272,7 @@ function renderPaymentHistory(payments){
     }
 
     let html = `
+    <div class="table-wrapper">
     <table class="exp-table">
         <thead>
             <tr>
@@ -1288,10 +1289,10 @@ function renderPaymentHistory(payments){
 
         html += `
         <tr>
-            <td>${formatDisplayDate(new Date(p.paidAt))}</td>
-            <td>#${p.orderId}</td>
-            <td><b>₹${p.amount}</b></td>
-            <td>
+            <td data-label="Date">${formatDisplayDate(new Date(p.paidAt))}</td>
+            <td data-label="Order">#${p.orderId}</td>
+            <td data-label="Amount"><b>₹${p.amount}</b></td>
+            <td data-label="Type">
     <span class="payment-type type-${p.paymentType}">
         ${p.paymentType}
     </span>
@@ -1300,7 +1301,7 @@ function renderPaymentHistory(payments){
         `
     })
 
-    html += `</tbody></table>`
+    html += `</tbody></table></div>`
 
     container.innerHTML = html
 }
@@ -1979,31 +1980,31 @@ function renderExpenses() {
         table.innerHTML += `
         <tr>
 
-            <td>${e.date}</td>
+            <td data-label="Date">${e.date}</td>
 
-            <td>${e.title}</td>
+            <td data-label="Title">${e.title}</td>
 
-            <td>
+            <td data-label="Type">
                 <span class="type-badge ${typeClass}">
                     ${e.type}
                 </span>
             </td>
 
-            <td>
+            <td data-label="Category">
                 <span class="category-tag">
                     ${e.category}
                 </span>
             </td>
 
-            <td>
+            <td >
                 
                     ${e.note}
                 
             </td>
 
-            <td><b>₹${e.amount}</b></td>
+            <td data-label="Amount"><b>₹${e.amount}</b></td>
 
-            <td>
+            <td data-label="Image proof">
                 ${e.fileUrl ? `
                     ${e.fileUrl.match(/\.(jpg|jpeg|png|webp)$/i) ? `
                         <img src="${e.fileUrl}" class="file-preview"
@@ -2016,8 +2017,8 @@ function renderExpenses() {
 
             <td>
                 <div class="exp-actions-btn">
-                    <button onclick="editExpense(${e.id})">Edit</button>
-                    <button onclick="deleteExpense(${e.id})">Delete</button>
+                    <button onclick="editExpense(${e.id})" style="color: var(--subtext);">Edit</button>
+                    <button onclick="deleteExpense(${e.id})" style="color: var(--subtext);">Delete</button>
                 </div>
             </td>
 
@@ -2183,4 +2184,16 @@ function openForm(){
 
 function closeForm(){
     document.getElementById("expenseModal").style.display = "none"
+}
+
+//Responsive--
+
+function toggleSidebar(){
+
+    const sidebar = document.querySelector(".sidebar")
+    const overlay = document.querySelector(".overlay")
+
+    sidebar.classList.toggle("active")
+    overlay.classList.toggle("active")
+
 }

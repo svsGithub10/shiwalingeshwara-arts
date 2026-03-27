@@ -92,7 +92,7 @@ public Map<String,Object> login(@RequestBody Map<String,String> req,
                 Cookie cookie = new Cookie("DEVICE_TOKEN", token);
                 cookie.setHttpOnly(true);
                 cookie.setPath("/");
-                cookie.setMaxAge(7 * 24 * 60 * 60);
+                cookie.setMaxAge(3650 * 24 * 60 * 60);
 
                 response.addCookie(cookie);
             }

@@ -1764,3 +1764,281 @@ mark{
     box-shadow:0 0 0 3px rgba(99,102,241,0.15);
 }
 
+/* RESPOSIVE */
+
+/* ===============================
+   MOBILE SIDEBAR (SLIDING)
+================================ */
+
+.mobile-topbar{
+    display:none;
+    padding:12px;
+    background:var(--card);
+    border-bottom:1px solid var(--border);
+    align-items:center;
+    gap:10px;
+}
+
+.hamburger{
+    font-size:20px;
+    border:none;
+    background:transparent;
+    cursor:pointer;
+    color: var(--subtext);
+}
+
+/* OVERLAY */
+.overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.5);
+    display:none;
+    z-index:998;
+}
+
+/* MOBILE MODE */
+@media(max-width:768px){
+
+    .admin-container{
+        flex-direction:column;
+    }
+
+    .mobile-topbar{
+        display:flex;
+    }
+
+    .sidebar{
+        position:fixed;
+        top:0;
+        left:0;
+        height:100%;
+        width:70%;              /* 🔥 HALF SCREEN */
+        max-width:280px;
+        transform:translateX(-100%);
+        transition:0.3s ease;
+        z-index:999;
+    }
+
+    .sidebar.active{
+        transform:translateX(0);
+    }
+
+    .overlay.active{
+        display:block;
+    }
+
+    .main-content{
+        padding:15px;
+    }
+
+    .topbar-logo{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-weight:600;
+    font-size:14px;
+}
+
+.topbar-logo img{
+    width:26px;
+    height:26px;
+}
+
+}
+
+@media(max-width:768px){
+
+    /* TEXT SIZES */
+    body{
+        font-size:14px;
+    }
+
+    .page-title{
+        font-size:18px;
+    }
+
+    /* SIDEBAR BUTTONS */
+    .sidebar button{
+        padding:10px;
+        font-size:13px;
+    }
+
+    /* CARDS */
+    .card,
+    .client-card,
+    .order-card{
+        padding:12px;
+        border-radius:12px;
+    }
+
+    /* CLIENT NAME */
+    .client-name{
+        font-size:14px;
+    }
+
+    /* BUTTONS */
+    button{
+        font-size:12px;
+        padding:6px 10px;
+    }
+
+    /* INPUTS */
+    input, select, textarea{
+        font-size:13px;
+        padding:8px;
+    }
+
+    /* ORDER IMAGE */
+    .order-image{
+        height:140px;
+    }
+
+    /* KPI CARDS */
+    .kpi{
+        min-height:70px;
+        padding:10px;
+    }
+
+    .kpi-title{
+        font-size:12px;
+    }
+
+    .kpi-value{
+        font-size:16px;
+    }
+
+    /* GRID SPACING */
+    .clients-grid{
+        gap:12px;
+    }
+
+    .finance-grid{
+        gap:10px;
+    }
+
+}
+
+/* ===============================
+   RESPONSIVE TABLE FIX
+================================ */
+
+/* DESKTOP NORMAL */
+.table-wrapper{
+    width:100%;
+    overflow-x:auto;
+}
+
+/* MOBILE CARD VIEW */
+@media(max-width:768px){
+
+    .exp-table thead{
+        display:none;
+    }
+
+    .exp-table,
+    .exp-table tbody,
+    .exp-table tr,
+    .exp-table td{
+        display:block;
+        width:100%;
+    }
+
+    .exp-table tr{
+        background:var(--card);
+        border:1px solid var(--border);
+        border-radius:12px;
+        margin-bottom:12px;
+        padding:10px;
+    }
+
+    .exp-table td{
+        border:none;
+        padding:6px 0;
+        display:flex;
+        justify-content:space-between;
+        font-size:13px;
+    }
+
+    /* LABELS (IMPORTANT) */
+    .exp-table td::before{
+        content:attr(data-label);
+        font-weight:600;
+        color:var(--subtext);
+    }
+}
+
+@media(max-width:768px){
+
+    #showUp{
+        display:none;
+    }
+
+    .chart-controls{
+        display:none;
+    }
+
+}
+
+@media(max-width:768px){
+
+    .finance-grid{
+        grid-template-columns:1fr;   /* 🔥 single column */
+        gap:10px;
+    }
+
+}
+
+@media(max-width:768px){
+
+    .card{
+        margin:6px 0 !important;
+        padding:12px;
+        border-radius:12px;
+    }
+
+}
+
+@media(max-width:768px){
+
+    input[type="date"],
+    input[type="month"],
+    select{
+        width:100%;
+        padding:8px;
+        font-size:13px;
+        margin-bottom:8px;
+    }
+
+}
+
+@media(max-width:768px){
+
+    .finance-day{
+        gap:8px;
+    }
+
+    .finance-day-header{
+        font-size:13px;
+    }
+
+    .mini-kpi{
+        padding:8px;
+    }
+
+    .mini-title{
+        font-size:11px;
+    }
+
+    .mini-value{
+        font-size:13px;
+    }
+
+}
+
+@media(max-width:768px){
+
+    .finance-grid:first-of-type{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+}
