@@ -419,11 +419,13 @@ renderClientSummary(orders)
 
 }
 
+let completed = 0
+
 function renderClientSummary(orders){
 
 let total = 0
 let paid = 0
-let completed = 0
+
 
 orders.forEach(o=>{
     total += o.price || 0
@@ -558,7 +560,7 @@ container.innerHTML += `
 
         <div class="order-info">
             <b>Material:</b> ${o.materials || "-"} <br>
-            <b>Material 2:</b> ${o.topLayer || "-"} <br>
+            <!--<b>Material 2:</b> ${o.topLayer || "-"} <br>--!>
             <b>Notes:</b> ${o.remark || "-"}
         </div>
 
@@ -652,13 +654,13 @@ const res = await fetch("/api/materials")
 const materials = await res.json()
 
 allMaterials = []
-allTopLayers = []
+// allTopLayers = []
 
 const materialSelect = document.getElementById("orderMaterial")
-const topLayerSelect = document.getElementById("orderTopLayer")
+// const topLayerSelect = document.getElementById("orderTopLayer")
 
 materialSelect.innerHTML = ""
-topLayerSelect.innerHTML = "<option value=''>None</option>"
+// topLayerSelect.innerHTML = "<option value=''>None</option>"
 
 /* parents */
 
@@ -683,19 +685,19 @@ materialSelect.innerHTML += `
 ${stockDot} ${name}
 </option>`
 
-topLayerSelect.innerHTML += `
-<option value="${name}">
-${stockDot} ${name}
-</option>`
+// topLayerSelect.innerHTML += `
+// <option value="${name}">
+// ${stockDot} ${name}
+// </option>`
 
 allMaterials.push({
     name: name,
     stock: child.stockStatus || v?.stockStatus
 })
-allTopLayers.push({
-    name: name,
-    stock: child.stockStatus || v?.stockStatus
-})
+// allTopLayers.push({
+//     name: name,
+//     stock: child.stockStatus || v?.stockStatus
+// })
 
 }else{
 
@@ -710,19 +712,19 @@ materialSelect.innerHTML += `
 ${stockDot} ${name}
 </option>`
 
-topLayerSelect.innerHTML += `
-<option value="${name}">
-${stockDot} ${name}
-</option>`
+// topLayerSelect.innerHTML += `
+// <option value="${name}">
+// ${stockDot} ${name}
+// </option>`
 
 allMaterials.push({
     name: name,
     stock: child.stockStatus || v?.stockStatus
 })
-allTopLayers.push({
-    name: name,
-    stock: child.stockStatus || v?.stockStatus
-})
+// allTopLayers.push({
+//     name: name,
+//     stock: child.stockStatus || v?.stockStatus
+// })
 
 })
 
@@ -750,21 +752,21 @@ function renderMaterialOptions(list){
     })
 }
 
-function renderTopLayerOptions(list){
+// function renderTopLayerOptions(list){
 
-    const select = document.getElementById("orderTopLayer")
-    select.innerHTML = "<option value=''>None</option>"
+//     const select = document.getElementById("orderTopLayer")
+//     select.innerHTML = "<option value=''>None</option>"
 
-    list.forEach(m=>{
+//     list.forEach(m=>{
 
-        let dot = stockIndicator(m.stock)
+//         let dot = stockIndicator(m.stock)
 
-        select.innerHTML += `
-        <option value="${m.name}">
-            ${dot} ${m.name}
-        </option>`
-    })
-}
+//         select.innerHTML += `
+//         <option value="${m.name}">
+//             ${dot} ${m.name}
+//         </option>`
+//     })
+// }
 
 function stockIndicator(status){
 
@@ -803,7 +805,7 @@ formData.append("city", document.getElementById("orderClientCity").value)
 
 formData.append("workType", document.getElementById("orderWorkType").value)
 formData.append("materials", document.getElementById("orderMaterial").value)
-formData.append("topLayer", document.getElementById("orderTopLayer").value)
+// formData.append("topLayer", document.getElementById("orderTopLayer").value)
 
 formData.append("remark", document.getElementById("orderRemark").value)
 formData.append("price", document.getElementById("orderPrice").value)
@@ -827,7 +829,7 @@ loadClients()
 }
 
 let allMaterials = []
-let allTopLayers = []
+// let allTopLayers = []
 
 function filterMaterialOptions(){
 
@@ -840,16 +842,16 @@ function filterMaterialOptions(){
     renderMaterialOptions(filtered.length ? filtered : allMaterials)
 }
 
-function filterTopLayerOptions(){
+// function filterTopLayerOptions(){
 
-    const text = document.getElementById("topLayerSearch").value.toLowerCase()
+//     const text = document.getElementById("topLayerSearch").value.toLowerCase()
 
-    const filtered = allTopLayers.filter(m =>
-        m.name.toLowerCase().includes(text)
-    )
+//     const filtered = allTopLayers.filter(m =>
+//         m.name.toLowerCase().includes(text)
+//     )
 
-    renderTopLayerOptions(filtered.length ? filtered : allTopLayers)
-}
+//     renderTopLayerOptions(filtered.length ? filtered : allTopLayers)
+// }
 
 let currentOrder = null
 
@@ -1000,13 +1002,13 @@ async function loadMaterialsForEdit(order){
     const materials = await res.json()
 
     const materialSelect = document.getElementById("editMaterial")
-    const topLayerSelect = document.getElementById("editTopLayer")
+    // const topLayerSelect = document.getElementById("editTopLayer")
 
     allMaterials = []
-    allTopLayers = []
+    // allTopLayers = []
 
     materialSelect.innerHTML = ""
-    topLayerSelect.innerHTML = "<option value=''>None</option>"
+    // topLayerSelect.innerHTML = "<option value=''>None</option>"
 
     /* parents */
     const parents = materials.filter(m => m.parentId == null)
@@ -1027,7 +1029,7 @@ let stockDot = stockIndicator(stock)
 
 /* store for search */
 allMaterials.push({ name, stock })
-allTopLayers.push({ name, stock })
+// allTopLayers.push({ name, stock })
 
 /* render */
 materialSelect.innerHTML += `
@@ -1035,10 +1037,10 @@ materialSelect.innerHTML += `
 ${stockDot} ${name}
 </option>`
 
-topLayerSelect.innerHTML += `
-<option value="${name}">
-${stockDot} ${name}
-</option>`
+// topLayerSelect.innerHTML += `
+// <option value="${name}">
+// ${stockDot} ${name}
+// </option>`
 
             } else {
 
@@ -1050,7 +1052,7 @@ let stockDot = stockIndicator(stock)
 
 /* store */
 allMaterials.push({ name, stock })
-allTopLayers.push({ name, stock })
+// allTopLayers.push({ name, stock })
 
 /* render */
 materialSelect.innerHTML += `
@@ -1058,10 +1060,10 @@ materialSelect.innerHTML += `
 ${stockDot} ${name}
 </option>`
 
-topLayerSelect.innerHTML += `
-<option value="${name}">
-${stockDot} ${name}
-</option>`
+// topLayerSelect.innerHTML += `
+// <option value="${name}">
+// ${stockDot} ${name}
+// </option>`
 
                 })
 
@@ -1073,7 +1075,7 @@ ${stockDot} ${name}
 
     // ✅ set selected values for edit
     materialSelect.value = order.materials
-    topLayerSelect.value = order.topLayer || ""
+    // topLayerSelect.value = order.topLayer || ""
 }
 
 function filterEditMaterialOptions(){
@@ -1087,16 +1089,16 @@ function filterEditMaterialOptions(){
     renderEditMaterialOptions(filtered.length ? filtered : allMaterials)
 }
 
-function filterEditTopLayerOptions(){
+// function filterEditTopLayerOptions(){
 
-    const text = document.getElementById("editTopLayerSearch").value.toLowerCase()
+//     const text = document.getElementById("editTopLayerSearch").value.toLowerCase()
 
-    const filtered = allTopLayers.filter(m =>
-        m.name.toLowerCase().includes(text)
-    )
+//     const filtered = allTopLayers.filter(m =>
+//         m.name.toLowerCase().includes(text)
+//     )
 
-    renderEditTopLayerOptions(filtered.length ? filtered : allTopLayers)
-}
+//     renderEditTopLayerOptions(filtered.length ? filtered : allTopLayers)
+// }
 
 function renderEditMaterialOptions(list){
 
@@ -1117,24 +1119,24 @@ function renderEditMaterialOptions(list){
     select.value = selected   // 🔥 restore selection
 }
 
-function renderEditTopLayerOptions(list){
+// function renderEditTopLayerOptions(list){
 
-    const select = document.getElementById("editTopLayer")
-    const selected = select.value
+//     const select = document.getElementById("editTopLayer")
+//     const selected = select.value
 
-    select.innerHTML = "<option value=''>None</option>"
+//     select.innerHTML = "<option value=''>None</option>"
 
-    list.forEach(m=>{
-        let dot = stockIndicator(m.stock)
+//     list.forEach(m=>{
+//         let dot = stockIndicator(m.stock)
 
-        select.innerHTML += `
-        <option value="${m.name}">
-            ${dot} ${m.name}
-        </option>`
-    })
+//         select.innerHTML += `
+//         <option value="${m.name}">
+//             ${dot} ${m.name}
+//         </option>`
+//     })
 
-    select.value = selected
-}
+//     select.value = selected
+// }
 
 async function saveOrderEdit(){
 
@@ -1144,7 +1146,7 @@ const formData = new FormData()
 
 formData.append("workType", document.getElementById("editWorkType").value)
 formData.append("materials", document.getElementById("editMaterial").value)
-formData.append("topLayer", document.getElementById("editTopLayer").value)
+// formData.append("topLayer", document.getElementById("editTopLayer").value)
 
 formData.append("remark", document.getElementById("editRemark").value)
 formData.append("price", document.getElementById("editPrice").value)
@@ -1439,6 +1441,12 @@ async function loadFinance(){
     <div class="kpi">
         <div class="kpi-title">Completed</div>
         <div class="kpi-value">${data.completed || 0}</div>
+    </div>
+    `
+    document.getElementById("delivered").innerHTML = `
+    <div class="kpi">
+        <div class="kpi-title">Delivered</div>
+        <div class="kpi-value">${data.delivered || 0}</div>
     </div>
     `
 
@@ -2196,4 +2204,94 @@ function toggleSidebar(){
     sidebar.classList.toggle("active")
     overlay.classList.toggle("active")
 
+}
+
+function openBulkPayment(){
+
+    const orders = currentOrders
+
+    let total = 0
+    let paid = 0
+
+    orders.forEach(o=>{
+        total += o.price || 0
+        paid += o.advancePaid || 0
+    })
+
+    const pending = total - paid
+
+    if(pending <= 0){
+        showToast("No pending amount")
+        return
+    }
+
+    document.getElementById("paymentModal").style.display="flex"
+
+    document.getElementById("bulkClientId").value = currentClientId
+    document.getElementById("payOrderId").value = ""   // 🔥 IMPORTANT
+
+    document.getElementById("payBalanceInfo").innerText =
+        "Total Pending: ₹" + pending
+
+    document.getElementById("payAmount").value = pending
+
+    document.getElementById("payError").innerText = ""
+
+    updateUPIQR()
+}
+
+async function submitPayment(){
+
+const orderId = document.getElementById("payOrderId").value
+const bulkClientId = document.getElementById("bulkClientId").value
+
+const amount = parseFloat(document.getElementById("payAmount").value)
+const type = document.getElementById("payType").value
+
+const errorBox = document.getElementById("payError")
+
+if(amount < 1){
+    errorBox.innerText = "Amount must be at least ₹1"
+    return
+}
+
+errorBox.innerText = ""
+
+// 🔥 BULK MODE
+if(bulkClientId){
+
+    await fetch("/api/payments/bulk",{
+        method:"POST",
+        headers:{
+            "Content-Type":"application/json"
+        },
+        body:JSON.stringify({
+            clientId: bulkClientId,
+            amount: amount,
+            type: type
+        })
+    })
+
+    showToast("Bulk payment applied")
+
+}else{
+
+    // SINGLE PAYMENT (existing logic)
+    await fetch("/api/payments",{
+        method:"POST",
+        headers:{
+            "Content-Type":"application/json"
+        },
+        body:JSON.stringify({
+            orderId:orderId,
+            amount:amount,
+            type:type
+        })
+    })
+
+    showToast("Payment added")
+}
+
+closePayment()
+openClientOrders(currentClientId)
 }

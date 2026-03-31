@@ -81,4 +81,62 @@ public List<Payment> getPaymentsByClient(@PathVariable Long clientId){
     return paymentRepository.findByOrderIdIn(orderIds);
 }
 
+@PostMapping("/bulk")
+public List<Payment> bulkPayment(@RequestBody Map<String,Object> req){
+
+    Long clientId = Long.parseLong(req.get("clientId").toString());
+    Double amount = Double.parseDouble(req.get("amount").toString());
+    String type = req.get("type").toString();
+
+    // 1. Get all orders of client
+    List<Order> orders = orderRepository.findByClientId(clientId);
+
+    // 2. Filter only pending orders
+    List<Order> pendingOrders = new ArrayList<>();
+
+    for(Order o : orders){
+        double paid = o.getAdvancePaid() == null ? 0 : o.getAdvancePaid();
+        double balance = o.getPrice() - paid;
+
+        if(balance > 0){
+            pendingOrders.add(o);
+        }
+    }
+
+    // 3. Sort (optional but good → oldest first)
+    pendingOrders.sort(Comparator.comparing(Order::getCreatedAt));
+
+    List<Payment> createdPayments = new ArrayList<>();
+
+    double remaining = amount;
+
+    for(Order o : pendingOrders){
+
+        if(remaining <= 0) break;
+
+        double paid = o.getAdvancePaid() == null ? 0 : o.getAdvancePaid();
+        double balance = o.getPrice() - paid;
+
+        double payAmount = Math.min(balance, remaining);
+
+        // create payment
+        Payment p = new Payment();
+        p.setOrderId(o.getId());
+        p.setAmount(payAmount);
+        p.setPaymentType(type);
+        p.setPaidAt(java.time.LocalDateTime.now());
+
+        paymentRepository.save(p);
+        createdPayments.add(p);
+
+        // update order
+        o.setAdvancePaid(paid + payAmount);
+        orderRepository.save(o);
+
+        remaining -= payAmount;
+    }
+
+    return createdPayments;
+}
+
 }

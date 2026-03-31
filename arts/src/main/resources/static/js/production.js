@@ -601,6 +601,8 @@ if(o.status==="IN_PROGRESS") statusClass="status-progress"
 if(o.status==="COMPLETED") statusClass="status-complete"
 if(o.status==="DELIVERED") statusClass="status-delivered"
 
+const isLaser = o.workType && o.workType.startsWith("LASER")
+
 container.innerHTML += `
 
 <div class="prod-card">
@@ -608,7 +610,7 @@ container.innerHTML += `
     <!-- LEFT -->
     <div class="prod-left">
 
-        <div class="prod-id">#${o.id}</div>
+        <div class="prod-id">#${o.id} ${o.workType}</div>
 
         <div class="prod-info">
             <b>Material:</b> ${o.materials || "-"} <br>
@@ -639,16 +641,48 @@ container.innerHTML += `
         <!-- ACTIONS BOTTOM -->
         <div class="prod-actions-row">
 
-            ${o.dxfFile ? `
-            <button onclick="downloadDxf(${o.id})"  style="color: var(--subtext);">
-                📁 DXF
-            </button>
-            ` : `<span class="no-file">No DXF</span>`}
+${isLaser ? (
 
-            <label class="upload-btn">
-                ${o.resultImage ? "Reupload" : "Upload"}
-                <input type="file" onchange="uploadResult(${o.id},this)" hidden>
-            </label>
+    o.dxfFile 
+    ? `<button onclick="downloadDxf(${o.id})">📁 DXF</button>`
+    : `<span class="no-file" style="color:red;">DXF Required</span>`
+
+) : (
+
+    o.status === "CREATED" ? `
+        <button onclick="markInProgress(${o.id})">
+            Start
+        </button>
+    `
+
+    : o.status === "IN_PROGRESS" ? `
+        <button disabled style="opacity:0.6; cursor:not-allowed;">
+            Started
+        </button>
+    `
+
+    : o.status === "DELIVERED" || "COMPLETED" ? `
+        <span class="no-file" style="color:gray;">
+            DXF Not Required
+        </span>
+    `
+
+    : ``
+
+)}
+
+
+
+${(!isLaser || o.dxfFile) ? `
+<label class="upload-btn">
+    ${o.resultImage ? "Reupload" : "Upload"}
+    <input type="file" onchange="uploadResult(${o.id},this)" hidden>
+</label>
+` : `
+<span class="no-file" style="color:red;">
+Upload locked (DXF missing)
+</span>
+`}
 
         </div>
 
@@ -659,6 +693,17 @@ container.innerHTML += `
 `
 })
 
+}
+
+async function markInProgress(id){
+
+    await fetch("/api/orders/" + id + "/inProgress", {
+        method: "PUT"
+    })
+
+    showToast("Status updated")
+
+    loadProductionOrders()
 }
 
 function refreshProduction(){
@@ -870,6 +915,13 @@ async function loadFinance(){
     <div class="kpi">
         <div class="kpi-title">Completed</div>
         <div class="kpi-value">${data.completed || 0}</div>
+    </div>
+    `
+
+    document.getElementById("delivered").innerHTML = `
+    <div class="kpi">
+        <div class="kpi-title">Delivered</div>
+        <div class="kpi-value">${data.delivered || 0}</div>
     </div>
     `
 

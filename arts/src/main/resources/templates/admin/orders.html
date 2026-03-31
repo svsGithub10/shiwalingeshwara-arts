@@ -102,7 +102,15 @@ oninput="searchClients(this.value)">
     </div>
 
 
-<h3 id="ordersClientName">Client Orders</h3>
+<div class="orders-header">
+
+    <h3 id="ordersClientName">Client Orders</h3>
+
+    <button onclick="openBulkPayment()" class="pay-all-btn">
+        💰 Pay All
+    </button>
+
+</div>
 
 <div id="clientSummary" class="client-summary"></div>
 <div id="ordersList"></div>
@@ -137,10 +145,13 @@ oninput="searchClients(this.value)">
 
 <input id="orderClientCity" placeholder="City">
 
-<select id="orderWorkType">
+<select id="orderWorkType" required>
     <option value="">Select Work Type</option>
-    <option value="LASER_CUT">Laser Cut</option>
-    <option value="LASER_ENGRAVE">Laser Engrave</option>
+    <option value="LASER_CUT">Laser Work</option>
+    <option value="STICKER_WORK">Sticker Work</option>
+    <option value="PRINT">Printing / Computer work</option>
+    <option value="BANNER_FLEX">Banner / Flex</option>
+    <option value="HAND_WORK">Hand Work / Painting </option>
 </select>
 
 <!-- MATERIAL -->
@@ -150,12 +161,12 @@ oninput="searchClients(this.value)">
 </div>
 
 <!-- TOP LAYER -->
-<div class="inline-field">
+<!-- <div class="inline-field">
     <input type="text" id="topLayerSearch" placeholder="Search Material..." oninput="filterTopLayerOptions()">
     <select id="orderTopLayer">
         <option value="">None</option>
     </select>
-</div>
+</div> -->
 
 <textarea id="orderRemark" placeholder="Other additions..."></textarea>
 
@@ -165,7 +176,7 @@ oninput="searchClients(this.value)">
     <input type="file" id="orderDxf">
 </div>
 
-<input type="number" id="orderPrice" placeholder="Total Price">
+<input type="number" id="orderPrice" placeholder="Total Price" required>
 
 <input type="hidden" id="orderAdvance" value="0">
 
@@ -193,6 +204,7 @@ oninput="searchClients(this.value)">
 <h3>Make Payment</h3><br>
 
 <input type="hidden" id="payOrderId">
+<input type="hidden" id="bulkClientId">
 
 <!-- BALANCE -->
 <div id="payBalanceInfo" class="pay-balance"></div>
@@ -260,10 +272,13 @@ oninput="searchClients(this.value)">
 
 <input type="hidden" id="editOrderId">
 
-<select id="editWorkType">
+<select id="editWorkType" required>
     <option value="">Select Work Type</option>
-    <option value="LASER_CUT">Laser Cut</option>
-    <option value="LASER_ENGRAVE">Laser Engrave</option>
+    <option value="LASER_CUT">Laser Work</option>
+    <option value="STICKER_WORK">Sticker Work</option>
+    <option value="PRINT">Printing / Computer work</option>
+    <option value="BANNER_FLEX">Banner / Flex</option>
+    <option value="HAND_WORK">Hand Work / Painting </option>
 </select>
 
 <!-- 🔍 MATERIAL -->
@@ -273,10 +288,10 @@ oninput="searchClients(this.value)">
 </div>
 
 <!-- 🔍 TOP LAYER -->
-<div class="inline-field">
-    <input type="text" id="editTopLayerSearch" placeholder="Search Material..." oninput="filterEditTopLayerOptions()">
+<!-- <div class="inline-field">
+    <input type="hidden" id="editTopLayerSearch" placeholder="Search Material..." oninput="filterEditTopLayerOptions()">
     <select id="editTopLayer"></select>
-</div>
+</div> -->
 
 <textarea id="editRemark" placeholder="Other additions..."></textarea>
 

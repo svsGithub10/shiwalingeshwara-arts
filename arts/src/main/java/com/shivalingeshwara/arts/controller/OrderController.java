@@ -34,7 +34,7 @@ public Order createOrder(
         @RequestParam String phone,
         @RequestParam String city,
         @RequestParam String workType,
-        @RequestParam String materials,
+        @RequestParam(required=false) String materials,
         @RequestParam(required=false) String topLayer,
         @RequestParam(required=false) String remark,
         @RequestParam Double price,
@@ -150,6 +150,17 @@ public Order markDelivered(@PathVariable Long id){
     return orderRepository.save(o);
 }
 
+@PutMapping("/{id}/inProgress")
+public Order markInProgress(@PathVariable Long id){
+
+    Order o = orderRepository.findById(id).orElseThrow();
+
+    o.setStatus("IN_PROGRESS");
+    // o.setDeliveredAt(java.time.LocalDateTime.now());
+
+    return orderRepository.save(o);
+}
+
 @DeleteMapping("/{id}")
 public Map<String,String> deleteOrder(@PathVariable Long id){
 
@@ -247,7 +258,21 @@ public List<Order> getProductionOrders(){
 
     return orderRepository.findAll()
             .stream()
-            .filter(o -> o.getDxfFile() != null) // only orders with design
+            .filter(o -> {
+
+                // 🔥 identify laser work
+                boolean isLaser =
+                        o.getWorkType() != null &&
+                        o.getWorkType().startsWith("LASER");
+
+                // ✅ LASER → must have DXF
+                if(isLaser){
+                    return o.getDxfFile() != null;
+                }
+
+                // ✅ NON-LASER → allow always
+                return true;
+            })
             .toList();
 }
 

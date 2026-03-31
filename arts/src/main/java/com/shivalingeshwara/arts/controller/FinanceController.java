@@ -44,6 +44,10 @@ public Map<String,Object> getSummary(@RequestParam(required = false) String date
             .filter(o -> "COMPLETED".equals(o.getStatus()))
             .count();
 
+    long delivered = orders.stream()
+        .filter(o -> "DELIVERED".equals(o.getStatus()))
+        .count();
+
     double totalRevenue = payments.stream()
             .mapToDouble(p -> p.getAmount() == null ? 0 : p.getAmount())
             .sum();
@@ -92,6 +96,7 @@ public Map<String,Object> getSummary(@RequestParam(required = false) String date
     res.put("totalOrders", totalOrders);
     res.put("inProgress", inProgress);
     res.put("completed", completed);
+    res.put("delivered", delivered);
 
     res.put("todayRevenue", todayRevenue);
     res.put("todayOrders", todayOrders);
