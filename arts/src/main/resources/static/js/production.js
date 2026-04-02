@@ -19,6 +19,10 @@ window.addEventListener("DOMContentLoaded", ()=>{
         document.body.classList.add("dark")
     }
 
+    if("Notification" in window && Notification.permission !== "granted"){
+        Notification.requestPermission()
+    }
+
 })
 
 function loadProdPage(page){
@@ -122,6 +126,8 @@ function showToast(message, type="success"){
     },3000)
 }
 
+let lastOrderHash = ""
+let knownOrderIds = new Set()
 
 /* ===============================
    MATERIAL SYSTEM
@@ -572,13 +578,43 @@ const res = await fetch("/api/orders/production")
 
 const orders = await res.json()
 
+    // 🔥 create hash
+    const newHash = JSON.stringify(orders.map(o => o.id + o.status + o.updatedAt))
+
+    // ✅ only re-render if changed
+    if(newHash === lastOrderHash){
+        return
+    }
+
+        // 🔥 detect new CREATED orders
+    const newOrders = orders.filter(o =>
+        o.status === "CREATED" && !knownOrderIds.has(o.id)
+    )
+
+    // update known IDs
+    orders.forEach(o => knownOrderIds.add(o.id))
+
+    // 🔊 play sound if new order found
+    if(newOrders.length > 0){
+        
+        showBrowserNotification(newOrders.length)
+    }
+
+    lastOrderHash = newHash
+
+    console.log("Orders updated")
+
 console.log("Orders:", orders)
 
 renderProductionOrders(orders)
 
 }
 
+function playNewOrderSound(){
 
+    const audio = new Audio("/sounds/new-order.mp3") // put file in static folder
+    audio.play().catch(()=>{}) // avoid browser block error
+}
 
 function renderProductionOrders(orders){
 
@@ -610,7 +646,13 @@ container.innerHTML += `
     <!-- LEFT -->
     <div class="prod-left">
 
-        <div class="prod-id">#${o.id} ${o.workType}</div>
+        <div class="prod-id">
+    #${o.id} ${o.workType}
+
+    ${o.status === "CREATED" ? `
+        <span class="new-badge">NEW</span>
+    ` : ``}
+</div>
 
         <div class="prod-info">
             <b>Material:</b> ${o.materials || "-"} <br>
@@ -644,24 +686,24 @@ container.innerHTML += `
 ${isLaser ? (
 
     o.dxfFile 
-    ? `<button onclick="downloadDxf(${o.id})">📁 DXF</button>`
+    ? `<button onclick="downloadDxf(${o.id})" style="color: var(--subtext);">📁 DXF</button>`
     : `<span class="no-file" style="color:red;">DXF Required</span>`
 
 ) : (
 
     o.status === "CREATED" ? `
-        <button onclick="markInProgress(${o.id})">
+        <button onclick="markInProgress(${o.id})" style="color: var(--subtext);">
             Start
         </button>
     `
 
     : o.status === "IN_PROGRESS" ? `
-        <button disabled style="opacity:0.6; cursor:not-allowed;">
+        <button disabled style="opacity:0.6; cursor:not-allowed; color: var(--subtext);">
             Started
         </button>
     `
 
-    : o.status === "DELIVERED" || "COMPLETED" ? `
+    : (o.status === "DELIVERED" || o.status === "COMPLETED") ? `
         <span class="no-file" style="color:gray;">
             DXF Not Required
         </span>
@@ -710,6 +752,23 @@ function refreshProduction(){
     loadProductionOrders()
 }
 
+function showBrowserNotification(count){
+
+    if(!("Notification" in window)) return
+
+    // 🔥 only notify when user is NOT on tab
+    if(document.visibilityState === "visible") return
+
+    if(Notification.permission === "granted"){
+
+        new Notification("New Orders", {
+            body: `${count} new order(s) received`,
+            icon: "/icon.png"
+        })
+
+    }
+}
+
 function previewImage(path){
 
 document.getElementById("imagePreviewModal").style.display="flex"
@@ -723,23 +782,15 @@ function closePreview(){
 document.getElementById("imagePreviewModal").style.display="none"
 }
 
-let prodInterval
 
-function startAutoRefresh(){
-    prodInterval = setInterval(loadProductionOrders, 10000)
-}
 
-function stopAutoRefresh(){
-    clearInterval(prodInterval)
-}
-
-document.addEventListener("visibilitychange", ()=>{
-    if(document.hidden){
-        stopAutoRefresh()
-    }else{
-        startAutoRefresh()
-    }
-})
+// document.addEventListener("visibilitychange", ()=>{
+//     if(document.hidden){
+//         stopAutoRefresh()
+//     }else{
+//         startAutoRefresh()
+//     }
+// })
 
 function downloadDxf(id){
 
@@ -778,8 +829,26 @@ loadProductionOrders()
 
 }
 
+let isPageVisible = true
+
+document.addEventListener("visibilitychange", ()=>{
+    isPageVisible = !document.hidden
+})
+
+async function liveOrderWatcher(){
+
+    
+    await loadProductionOrders()
+    
+
+    setTimeout(liveOrderWatcher, 800)
+}
+
 window.addEventListener("DOMContentLoaded", function(){
     loadProdPage("orders")
+
+    // start live watcher
+    liveOrderWatcher()
 })
 
 /* ===============================
@@ -1435,3 +1504,4 @@ function toggleSidebar(){
     overlay.classList.toggle("active")
 
 }
+

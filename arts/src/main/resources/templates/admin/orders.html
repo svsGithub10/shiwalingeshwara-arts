@@ -155,9 +155,16 @@ oninput="searchClients(this.value)">
 </select>
 
 <!-- MATERIAL -->
-<div class="inline-field">
-    <input type="text" id="materialSearch" placeholder="Search Material..." oninput="filterMaterialOptions()">
-    <select id="orderMaterial"></select>
+<div class="custom-select" id="materialSelectBox">
+
+    <input type="text"
+           id="materialSearch"
+           placeholder="Search Material..."
+           oninput="filterMaterialOptions()"
+           onclick="toggleMaterialDropdown()">
+
+    <div class="options" id="materialOptions"></div>
+
 </div>
 
 <!-- TOP LAYER -->
@@ -172,7 +179,7 @@ oninput="searchClients(this.value)">
 
 <!-- DXF -->
 <div class="inline-field">
-    <span class="file-label">DXF</span>
+    <span class="file-label" id="dxfLabel">DXF (Optional)</span>
     <input type="file" id="orderDxf">
 </div>
 
@@ -282,9 +289,16 @@ oninput="searchClients(this.value)">
 </select>
 
 <!-- 🔍 MATERIAL -->
-<div class="inline-field">
-    <input type="text" id="editMaterialSearch" placeholder="Search Material..." oninput="filterEditMaterialOptions()">
-    <select id="editMaterial"></select>
+<div class="custom-select" id="editMaterialSelectBox">
+
+    <input type="text"
+           id="editMaterialSearch"
+           placeholder="Search Material..."
+           oninput="filterEditMaterialOptions()"
+           onclick="toggleEditMaterialDropdown()">
+
+    <div class="options" id="editMaterialOptions"></div>
+
 </div>
 
 <!-- 🔍 TOP LAYER -->
@@ -297,7 +311,7 @@ oninput="searchClients(this.value)">
 
 <!-- DXF -->
 <div class="inline-field">
-    <span class="file-label">DXF</span>
+    <span class="file-label">DXF (if Required)</span>
     <input type="file" id="editDxf">
 </div>
 

@@ -45,6 +45,13 @@ public class PaymentController {
 
         order.setAdvancePaid(newAdvance);
 
+        double totalPrice = order.getPrice() == null ? 0 : order.getPrice();
+
+if(newAdvance >= totalPrice){
+    order.setStatus("DELIVERED");
+    order.setDeliveredAt(java.time.LocalDateTime.now());
+}
+
         orderRepository.save(order);
 
         return p;
@@ -130,8 +137,19 @@ public List<Payment> bulkPayment(@RequestBody Map<String,Object> req){
         createdPayments.add(p);
 
         // update order
-        o.setAdvancePaid(paid + payAmount);
-        orderRepository.save(o);
+double newPaid = paid + payAmount;
+
+o.setAdvancePaid(newPaid);
+
+// 🔥 AUTO DELIVER CHECK
+double totalPrice = o.getPrice() == null ? 0 : o.getPrice();
+
+if(newPaid >= totalPrice){
+    o.setStatus("DELIVERED");
+    o.setDeliveredAt(java.time.LocalDateTime.now());
+}
+
+orderRepository.save(o);
 
         remaining -= payAmount;
     }

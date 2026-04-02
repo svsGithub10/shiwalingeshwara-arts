@@ -360,6 +360,21 @@ const name = document.getElementById("editClientName").value
 const phone = document.getElementById("editClientPhone").value
 const city = document.getElementById("editClientCity").value
 
+if(!name){
+    showToast("Client name is required","error")
+    return
+}
+
+if(!phone){
+    showToast("Phone is required","error")
+    return
+}
+
+if(!/^\d{10}$/.test(phone)){
+    showToast("Enter valid 10-digit phone number","error")
+    return
+}
+
 await fetch("/api/clients/"+id,{
 
 method:"PUT",
@@ -394,6 +409,7 @@ function openNewOrder(){
 
 console.log("Open new order window")
 
+
 }
 
 let currentClientId = null
@@ -419,13 +435,13 @@ renderClientSummary(orders)
 
 }
 
-let completed = 0
+
 
 function renderClientSummary(orders){
 
 let total = 0
 let paid = 0
-
+let completed = 0
 
 orders.forEach(o=>{
     total += o.price || 0
@@ -596,11 +612,11 @@ container.innerHTML += `
             <button onclick="openPayment(${o.id})">Pay</button>
             `}
 
-                ${o.status == "COMPLETED" ? `
+<!--${o.status == "COMPLETED" ? `
 <button onclick="markDelivered(${o.id})">
 Deliver
 </button>
-` : ``}
+` : ``}-->
 
         </div>
 
@@ -632,13 +648,49 @@ document.getElementById("clientOrdersModal").style.display="none"
 
 }
 
+function handleWorkTypeChange(){
+
+    const workType = document.getElementById("orderWorkType").value
+    const isLaser = workType && workType.startsWith("LASER")
+
+    const dxfInput = document.getElementById("orderDxf")
+    const label = document.getElementById("dxfLabel")
+
+    if(isLaser){
+        label.innerText = "DXF (Required)"
+        dxfInput.required = true
+    }else{
+        label.innerText = "DXF (Optional)"
+        dxfInput.required = false
+    }
+}
+
 function openNewOrder(){
+
+    document.getElementById("orderWorkType")
+.addEventListener("change", handleWorkTypeChange)
 
 document.getElementById("newOrderModal").style.display="flex"
 
 loadMaterialsForOrder()
 
+setTimeout(()=>{
+    renderMaterialOptions(allMaterials)
+},200)
+
 }
+
+document.addEventListener("click", function(e){
+
+    const box = document.getElementById("materialSelectBox")
+
+    if(!box) return
+
+    if(!box.contains(e.target)){
+        box.classList.remove("active")
+    }
+
+})
 
 function closeNewOrder(){
 
@@ -650,106 +702,85 @@ document.getElementById("newOrderModal").style.display="none"
 
 async function loadMaterialsForOrder(){
 
-const res = await fetch("/api/materials")
-const materials = await res.json()
+    const res = await fetch("/api/materials")
+    const materials = await res.json()
 
-allMaterials = []
-// allTopLayers = []
+    allMaterials = []
 
-const materialSelect = document.getElementById("orderMaterial")
-// const topLayerSelect = document.getElementById("orderTopLayer")
+    const parents = materials.filter(m => m.parentId == null)
 
-materialSelect.innerHTML = ""
-// topLayerSelect.innerHTML = "<option value=''>None</option>"
+    parents.forEach(parent => {
 
-/* parents */
+        const children = materials.filter(m => m.parentId == parent.id)
 
-const parents = materials.filter(m => m.parentId == null)
+        children.forEach(child => {
 
-parents.forEach(parent => {
+            const variants = materials.filter(m => m.parentId == child.id)
 
-const children = materials.filter(m => m.parentId == parent.id)
+            // 🔥 NO VARIANT
+            if(variants.length === 0){
 
-children.forEach(child => {
+                let name = child.name + " " + parent.name
 
-const variants = materials.filter(m => m.parentId == child.id)
+                allMaterials.push({
+                    name: name,
+                    stock: child.stockStatus
+                })
 
-if(variants.length === 0){
+            }
 
-let name = child.name + " " + parent.name
+            // 🔥 WITH VARIANTS
+            else{
 
-let stockDot = stockIndicator(child.stockStatus)
+                variants.forEach(v=>{
 
-materialSelect.innerHTML += `
-<option value="${name}">
-${stockDot} ${name}
-</option>`
+                    let name = v.name + " " + child.name + " " + parent.name
 
-// topLayerSelect.innerHTML += `
-// <option value="${name}">
-// ${stockDot} ${name}
-// </option>`
+                    allMaterials.push({
+                        name: name,
+                        stock: v.stockStatus
+                    })
 
-allMaterials.push({
-    name: name,
-    stock: child.stockStatus || v?.stockStatus
-})
-// allTopLayers.push({
-//     name: name,
-//     stock: child.stockStatus || v?.stockStatus
-// })
+                })
 
-}else{
+            }
 
-variants.forEach(v=>{
+        })
 
-let name = v.name + " " + child.name + " " + parent.name
+    })
 
-let stockDot = stockIndicator(v.stockStatus)
-
-materialSelect.innerHTML += `
-<option value="${name}">
-${stockDot} ${name}
-</option>`
-
-// topLayerSelect.innerHTML += `
-// <option value="${name}">
-// ${stockDot} ${name}
-// </option>`
-
-allMaterials.push({
-    name: name,
-    stock: child.stockStatus || v?.stockStatus
-})
-// allTopLayers.push({
-//     name: name,
-//     stock: child.stockStatus || v?.stockStatus
-// })
-
-})
-
-}
-
-})
-
-})
-
+    // ✅ render after loading
+    renderMaterialOptions(allMaterials)
 }
 
 function renderMaterialOptions(list){
 
-    const select = document.getElementById("orderMaterial")
-    select.innerHTML = ""
+    const container = document.getElementById("materialOptions")
+    container.innerHTML = ""
+
+    // NONE option
+    container.innerHTML += `
+    <div class="option" onclick="selectMaterial('')">
+        None
+    </div>`
 
     list.forEach(m=>{
 
         let dot = stockIndicator(m.stock)
 
-        select.innerHTML += `
-        <option value="${m.name}">
+        container.innerHTML += `
+        <div class="option" onclick="selectMaterial('${m.name}')">
             ${dot} ${m.name}
-        </option>`
+        </div>`
     })
+}
+
+function selectMaterial(value){
+
+    document.getElementById("materialSearch").value = value || ""
+
+    document.getElementById("materialSelectBox")
+    .classList.remove("active")
 }
 
 // function renderTopLayerOptions(list){
@@ -797,6 +828,36 @@ applyFilter(radio.value)
 
 async function saveOrder(){
 
+const name = document.getElementById("orderClientName").value.trim()
+const phone = document.getElementById("orderClientPhone").value.trim()
+const price = document.getElementById("orderPrice").value.trim()
+const workType = document.getElementById("orderWorkType").value
+
+if(!name){
+    showToast("Client name is required","error")
+    return
+}
+
+if(!phone){
+    showToast("Phone is required","error")
+    return
+}
+
+if(!/^\d{10}$/.test(phone)){
+    showToast("Enter valid 10-digit phone number","error")
+    return
+}
+
+if(!price || Number(price) <= 0){
+    showToast("Valid price is required","error")
+    return
+}
+
+if(!workType || workType == ""){
+    showToast("Please select work type","error")
+    return
+}
+
 const formData = new FormData()
 
 formData.append("name", document.getElementById("orderClientName").value)
@@ -804,7 +865,7 @@ formData.append("phone", document.getElementById("orderClientPhone").value)
 formData.append("city", document.getElementById("orderClientCity").value)
 
 formData.append("workType", document.getElementById("orderWorkType").value)
-formData.append("materials", document.getElementById("orderMaterial").value)
+formData.append("materials", document.getElementById("materialSearch").value)
 // formData.append("topLayer", document.getElementById("orderTopLayer").value)
 
 formData.append("remark", document.getElementById("orderRemark").value)
@@ -813,14 +874,23 @@ formData.append("advance", document.getElementById("orderAdvance").value)
 
 const file = document.getElementById("orderDxf").files[0]
 
+const isLaser = workType && workType.startsWith("LASER")
+
 if(file){
 formData.append("file", file)
+}
+
+if(isLaser && !file){
+    showToast("DXF file is required for Laser work", "error")
+    return
 }
 
 await fetch("/api/orders",{
 method:"POST",
 body:formData
 })
+
+
 
 closeNewOrder()
 showToast("Order created")
@@ -832,6 +902,8 @@ let allMaterials = []
 // let allTopLayers = []
 
 function filterMaterialOptions(){
+
+    document.getElementById("materialSelectBox").classList.add("active")
 
     const text = document.getElementById("materialSearch").value.toLowerCase()
 
@@ -1001,16 +1073,8 @@ async function loadMaterialsForEdit(order){
     const res = await fetch("/api/materials")
     const materials = await res.json()
 
-    const materialSelect = document.getElementById("editMaterial")
-    // const topLayerSelect = document.getElementById("editTopLayer")
-
     allMaterials = []
-    // allTopLayers = []
 
-    materialSelect.innerHTML = ""
-    // topLayerSelect.innerHTML = "<option value=''>None</option>"
-
-    /* parents */
     const parents = materials.filter(m => m.parentId == null)
 
     parents.forEach(parent => {
@@ -1023,47 +1087,23 @@ async function loadMaterialsForEdit(order){
 
             if(variants.length === 0){
 
-let name = child.name + " " + parent.name
-let stock = child.stockStatus
-let stockDot = stockIndicator(stock)
+                let name = child.name + " " + parent.name
 
-/* store for search */
-allMaterials.push({ name, stock })
-// allTopLayers.push({ name, stock })
-
-/* render */
-materialSelect.innerHTML += `
-<option value="${name}">
-${stockDot} ${name}
-</option>`
-
-// topLayerSelect.innerHTML += `
-// <option value="${name}">
-// ${stockDot} ${name}
-// </option>`
+                allMaterials.push({
+                    name: name,
+                    stock: child.stockStatus
+                })
 
             } else {
 
                 variants.forEach(v => {
 
-  let name = v.name + " " + child.name + " " + parent.name
-let stock = v.stockStatus
-let stockDot = stockIndicator(stock)
+                    let name = v.name + " " + child.name + " " + parent.name
 
-/* store */
-allMaterials.push({ name, stock })
-// allTopLayers.push({ name, stock })
-
-/* render */
-materialSelect.innerHTML += `
-<option value="${name}">
-${stockDot} ${name}
-</option>`
-
-// topLayerSelect.innerHTML += `
-// <option value="${name}">
-// ${stockDot} ${name}
-// </option>`
+                    allMaterials.push({
+                        name: name,
+                        stock: v.stockStatus
+                    })
 
                 })
 
@@ -1073,12 +1113,16 @@ ${stockDot} ${name}
 
     })
 
-    // ✅ set selected values for edit
-    materialSelect.value = order.materials
-    // topLayerSelect.value = order.topLayer || ""
+    // ✅ render dropdown
+    renderEditMaterialOptions(allMaterials)
+
+    // ✅ set existing value
+    document.getElementById("editMaterialSearch").value = order.materials || ""
 }
 
 function filterEditMaterialOptions(){
+
+    document.getElementById("editMaterialSelectBox").classList.add("active")
 
     const text = document.getElementById("editMaterialSearch").value.toLowerCase()
 
@@ -1102,23 +1146,30 @@ function filterEditMaterialOptions(){
 
 function renderEditMaterialOptions(list){
 
-    const select = document.getElementById("editMaterial")
-    const selected = select.value   // 🔥 preserve selection
+    const container = document.getElementById("editMaterialOptions")
+    container.innerHTML = ""
 
-    select.innerHTML = ""
+    container.innerHTML += `
+    <div class="option" onclick="selectEditMaterial('')">None</div>`
 
     list.forEach(m=>{
+
         let dot = stockIndicator(m.stock)
 
-        select.innerHTML += `
-        <option value="${m.name}">
+        container.innerHTML += `
+        <div class="option" onclick="selectEditMaterial('${m.name}')">
             ${dot} ${m.name}
-        </option>`
+        </div>`
     })
-
-    select.value = selected   // 🔥 restore selection
 }
 
+function selectEditMaterial(value){
+
+    document.getElementById("editMaterialSearch").value = value || ""
+
+    document.getElementById("editMaterialSelectBox")
+    .classList.remove("active")
+}
 // function renderEditTopLayerOptions(list){
 
 //     const select = document.getElementById("editTopLayer")
@@ -1138,14 +1189,41 @@ function renderEditMaterialOptions(list){
 //     select.value = selected
 // }
 
+function toggleMaterialDropdown(){
+    document.getElementById("materialSelectBox")
+    .classList.toggle("active")
+}
+
+function toggleEditMaterialDropdown(){
+    document.getElementById("editMaterialSelectBox")
+    .classList.toggle("active")
+}
+
 async function saveOrderEdit(){
+
+
+const price = document.getElementById("editPrice").value.trim()
+
+
+
+if(!price || Number(price) <= 0){
+    showToast("Valid price is required","error")
+    return
+}
+const workType = document.getElementById("editWorkType").value
+
+if(!workType || workType == ""){
+    showToast("Work type is required","error")
+    return
+}
+
 
 const id = document.getElementById("editOrderId").value
 
 const formData = new FormData()
 
 formData.append("workType", document.getElementById("editWorkType").value)
-formData.append("materials", document.getElementById("editMaterial").value)
+formData.append("materials", document.getElementById("editMaterialSearch").value)
 // formData.append("topLayer", document.getElementById("editTopLayer").value)
 
 formData.append("remark", document.getElementById("editRemark").value)
@@ -1236,6 +1314,18 @@ const box = document.getElementById("filterBox")
 box.style.display = box.style.display === "none" ? "block" : "none"
 
 }
+
+// 🔥 close when clicking outside
+document.addEventListener("click", function(e){
+
+    const box = document.getElementById("filterBox")
+    const btn = document.querySelector(".filter-btn")
+
+    if(!box.contains(e.target) && !btn.contains(e.target)){
+        box.style.display = "none"
+    }
+
+})
 
 async function openPaymentHistory(clientId){
 
