@@ -44,6 +44,7 @@ document.getElementById("prodContent").innerHTML = html
 // run correct loader
 if(page === "orders"){
 setTimeout(loadProductionOrders,200)
+
 }
 
 if(page === "materials"){

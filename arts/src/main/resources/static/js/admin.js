@@ -612,11 +612,11 @@ container.innerHTML += `
             <button onclick="openPayment(${o.id})">Pay</button>
             `}
 
-<!--${o.status == "COMPLETED" ? `
+${o.status == "COMPLETED" ? `
 <button onclick="markDelivered(${o.id})">
 Deliver
 </button>
-` : ``}-->
+` : ``}
 
         </div>
 

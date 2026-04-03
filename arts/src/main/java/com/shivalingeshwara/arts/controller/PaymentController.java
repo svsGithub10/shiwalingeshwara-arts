@@ -45,12 +45,12 @@ public class PaymentController {
 
         order.setAdvancePaid(newAdvance);
 
-        double totalPrice = order.getPrice() == null ? 0 : order.getPrice();
+        // double totalPrice = order.getPrice() == null ? 0 : order.getPrice();
 
-if(newAdvance >= totalPrice){
-    order.setStatus("DELIVERED");
-    order.setDeliveredAt(java.time.LocalDateTime.now());
-}
+// if(newAdvance >= totalPrice){
+//     order.setStatus("DELIVERED");
+//     order.setDeliveredAt(java.time.LocalDateTime.now());
+// }
 
         orderRepository.save(order);
 
@@ -141,13 +141,13 @@ double newPaid = paid + payAmount;
 
 o.setAdvancePaid(newPaid);
 
-// 🔥 AUTO DELIVER CHECK
-double totalPrice = o.getPrice() == null ? 0 : o.getPrice();
+// // 🔥 AUTO DELIVER CHECK
+// double totalPrice = o.getPrice() == null ? 0 : o.getPrice();
 
-if(newPaid >= totalPrice){
-    o.setStatus("DELIVERED");
-    o.setDeliveredAt(java.time.LocalDateTime.now());
-}
+// if(newPaid >= totalPrice){
+//     o.setStatus("DELIVERED");
+//     o.setDeliveredAt(java.time.LocalDateTime.now());
+// }
 
 orderRepository.save(o);
 
