@@ -12,7 +12,7 @@
 type="text"
 class="search"
 placeholder="Search client name or phone..."
-oninput="searchClients(this.value)">
+oninput="searchGlobal(this.value)">
 
 <button class="filter-btn" onclick="toggleFilter()">Filter</button>
 
@@ -22,17 +22,43 @@ oninput="searchClients(this.value)">
 <label><input type="radio" name="filter" value="recent"> Recently Ordered</label>
 <label><input type="radio" name="filter" value="new"> Newly Added</label>
 <label><input type="radio" name="filter" value="name"> Name (A-Z)</label>
+<!-- 🔥 update 0.43 DATE FILTER -->
+<label>
+    <input type="date" id="filterOrderDateGlobal" onchange="applyOrdersCombinedFilter()">
+</label>
 
 </div>
+</div>
+
+
+<!-- 🔥 update 0.43: TOGGLE SWITCH -->
+<div class="view-toggle" style="margin-left:auto;">
+
+    <div class="toggle-switch" onclick="toggleViewSwitch()">
+        <div class="toggle-slider" id="toggleSlider"></div>
+
+        <div class="toggle-label left">Orders</div>
+        <div class="toggle-label right">Clients</div>
+    </div>
+
 </div>
 
 <button class="add-btn" onclick="openNewOrder()">
 + New Order
 </button>
-
 </div>
 
+
+
 <div id="clientsGrid" class="clients-grid"></div>
+
+<!-- 🔥 update 0.43: ORDERS PAGE -->
+<div id="ordersPage" style="display:none">
+
+    <!-- ⚠️ IMPORTANT: SAME ID -->
+    <div id="ordersListGlobal"></div>
+
+</div>
 
 </div>
 

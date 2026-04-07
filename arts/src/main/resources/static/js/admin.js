@@ -21,6 +21,15 @@ window.addEventListener("DOMContentLoaded", ()=>{
 
 })
 
+// 🔥 update 0.43
+window.addEventListener("DOMContentLoaded", async ()=>{
+
+    await loadClients()
+    await switchViewOrders()
+    setTimeout(updateFilterUI, 200)
+
+})
+
 function loadPage(page){
 
     fetch("/admin/" + page)
@@ -179,7 +188,7 @@ clients.forEach(c=>{
 grid.innerHTML += `
 
 <div class="client-card"
-onclick="openClientOrders(${c.id})">
+onclick="openClientOrdersFixed(${c.id})">
 
     <!-- TOP ROW -->
     <div class="client-top">
@@ -246,13 +255,51 @@ document.querySelectorAll("input[name='filter']")
 
 radio.addEventListener("change",()=>{
 
-applyFilter(radio.value)
+    if(typeof currentViewMode !== "undefined" && currentViewMode === "orders"){
+        applyOrdersCombinedFilter()
+    }else{
+        applyFilter(radio.value)
+    }
 
 })
 
 })
 
 function applyFilter(type){
+
+// 🔥 update 0.43 (orders support)
+if(typeof currentViewMode !== "undefined" && currentViewMode === "orders"){
+
+    let list = [...allOrdersGlobal]
+
+    if(type === "recent"){
+        list.sort((a,b)=> new Date(b.createdAt) - new Date(a.createdAt))
+    }
+
+    if(type === "new"){
+        list.sort((a,b)=> b.id - a.id)
+    }
+
+    if(type === "orders"){
+        // most orders → group by client frequency
+        const countMap = {}
+
+        allOrdersGlobal.forEach(o=>{
+            countMap[o.clientId] = (countMap[o.clientId] || 0) + 1
+        })
+
+        list.sort((a,b)=>
+            (countMap[b.clientId]||0) - (countMap[a.clientId]||0)
+        )
+    }
+
+    // ❌ IGNORE name(A-Z) for orders
+
+    currentOrders = list
+    renderOrders(list)
+
+    return
+}
 
 let list = [...clientsCache]
 
@@ -322,7 +369,7 @@ return
 
 showToast("Client deleted")
 
-loadClients()
+await refreshOrdersView()
 
 }
 
@@ -389,7 +436,7 @@ closeClientEdit()
 
 showToast("Client Updated")
 
-loadClients()
+await refreshOrdersView()
 
 }
 
@@ -433,6 +480,25 @@ currentOrders = orders
 renderOrders(orders)
 renderClientSummary(orders)
 
+}
+
+// 🔥 update 0.43 FIX DUPLICATE ID
+function renderOrdersGlobal(orders){
+
+    const original = document.getElementById("ordersList")
+    const global = document.getElementById("ordersListGlobal")
+
+    if(!global) return
+
+    // temporarily swap id
+    original.id = "ordersList_backup"
+    global.id = "ordersList"
+
+    renderOrders(orders)
+
+    // restore
+    global.id = "ordersListGlobal"
+    original.id = "ordersList"
 }
 
 
@@ -501,7 +567,7 @@ function filterOrders(){
 function clearOrderFilters(){
     document.getElementById("filterOrderDate").value = ""
     document.getElementById("filterDeliveredDate").value = ""
-    renderOrders(currentOrders)
+    renderOrdersGlobal(currentOrders)
 }
 
 function getProgressStep(status){
@@ -528,10 +594,23 @@ if(o.status==="DELIVERED") statusClass="status-delivered"
 
 const balance = o.price - (o.advancePaid || 0)
 const step = getProgressStep(o.status)
+const currentStep = step
 
 container.innerHTML += `
 
 <div class="order-card">
+
+<!-- 🔥 update 0.44 CLIENT HEADER -->
+${o.clientName ? `
+<div style="margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)">
+    <div style="font-weight:600;font-size:14px">
+        ${o.clientName}
+    </div>
+    <div style="font-size:12px;color:var(--subtext)">
+        ${o.clientPhone}
+    </div>
+</div>
+` : ""}
 
     <!-- HEADER -->
     <div class="order-header">
@@ -546,19 +625,19 @@ container.innerHTML += `
     </div>
 
     
-    <!-- PROGRESS TRACKER -->
+<!-- PROGRESS TRACKER -->
 <div class="order-progress">
 
-    <div class="step ${step>=1?'active':''}">Created</div>
+    <div class="step ${step>=1?'active':''} ${currentStep===1?'current':''}" data-label="Created">Created</div>
     <div class="line ${step>=2?'active':''}"></div>
 
-    <div class="step ${step>=2?'active':''}">In Progress</div>
+    <div class="step ${step>=2?'active':''} ${currentStep===2?'current':''}" data-label="In Progress">In Progress</div>
     <div class="line ${step>=3?'active':''}"></div>
 
-    <div class="step ${step>=3?'active':''}">Completed</div>
+    <div class="step ${step>=3?'active':''} ${currentStep===3?'current':''}" data-label="Completed">Completed</div>
     <div class="line ${step>=4?'active':''}"></div>
 
-    <div class="step ${step>=4?'active':''}">Delivered</div>
+    <div class="step ${step>=4?'active':''} ${currentStep===4?'current':''}" data-label="Delivered">Delivered</div>
 
 </div>
 
@@ -602,14 +681,14 @@ container.innerHTML += `
 
             ${o.dxfFile ? `<button onclick="downloadDxf(${o.id})">DXF</button>` : ``}
 
-            <button onclick="editOrder(${o.id})">Edit</button>
+            <button onclick="editOrderGlobal(${o.id})">Edit</button>
 
             <button onclick="deleteOrder(${o.id})">Delete</button>
 
             ${balance <= 0 ? `
             <button class="paid-btn" disabled>✔ Paid</button>
             ` : `
-            <button onclick="openPayment(${o.id})">Pay</button>
+            <button onclick="openPaymentGlobal(${o.id})">Pay</button>
             `}
 
 ${o.status == "COMPLETED" ? `
@@ -629,17 +708,43 @@ Deliver
 
 }
 
+// 🔥 update 0.43
+async function refreshOrdersView(){
+
+    await loadClients()              // always refresh clients
+    await loadAllOrdersGlobal()      // always refresh orders
+
+    if(currentViewMode === "orders"){
+        renderOrdersGlobal(allOrdersGlobal)
+    }
+}
+
+// 🔥 update 0.50 SMART DELIVER (MODAL AWARE)
 async function markDelivered(id){
 
-if(!confirm("Mark this order as Delivered?")) return
+    if(!confirm("Mark this order as Delivered?")) return
 
-await fetch("/api/orders/" + id + "/deliver", {
-    method: "PUT"
-})
+    const order = allOrdersGlobal.find(o=>o.id === id)
+    if(!order) return
 
-showToast("Order Delivered")
+    const clientId = order.clientId
 
-openClientOrders(currentClientId)
+    await fetch("/api/orders/" + id + "/deliver", {
+        method: "PUT"
+    })
+
+    showToast("Order Delivered")
+
+    await refreshOrdersView()
+
+    // 🔥 MODAL HANDLING
+    const modal = document.getElementById("clientOrdersModal")
+    const isOpen = modal && getComputedStyle(modal).display !== "none"
+
+    if(!isOpen) return
+
+    // reload modal with updated data
+    await openClientOrders(clientId)
 }
 
 function closeOrders(){
@@ -894,7 +999,7 @@ body:formData
 
 closeNewOrder()
 showToast("Order created")
-loadClients()
+await refreshOrdersView()
 
 }
 
@@ -1036,7 +1141,7 @@ closePayment()
 
 showToast("Payment added")
 
-openClientOrders(currentClientId)
+await refreshOrdersView()
 
 }
 
@@ -1247,7 +1352,7 @@ closeEditOrder()
 
 showToast("Order updated")
 
-openClientOrders(currentClientId)
+await refreshOrdersView()
 
 }
 
@@ -1255,25 +1360,54 @@ function closeEditOrder(){
 document.getElementById("editOrderModal").style.display="none"
 }
 
+// 🔥 update 0.50 SMART DELETE (MODAL AWARE)
 async function deleteOrder(id){
 
-if(!confirm("Delete this order?")) return
+    if(!confirm("Delete this order?")) return
 
-const res = await fetch("/api/orders/"+id,{
-method:"DELETE"
-})
+    const order = allOrdersGlobal.find(o=>o.id === id)
+    if(!order) return
 
-const data = await res.json()
+    const clientId = order.clientId
 
-if(data.status === "error"){
-showToast(data.message)
-return
-}
+    // check client orders BEFORE delete
+    const clientOrders = allOrdersGlobal.filter(o=>o.clientId === clientId)
 
-showToast("Order deleted")
+    let deleteClientAlso = false
 
-openClientOrders(currentClientId)
+    if(clientOrders.length === 1){
 
+        deleteClientAlso = confirm(
+            "This is client's only order.\nDelete client also?"
+        )
+    }
+
+    // delete order
+    await fetch("/api/orders/"+id,{ method:"DELETE" })
+
+    // delete client if needed
+    if(deleteClientAlso){
+        await fetch("/api/clients/"+clientId,{ method:"DELETE" })
+    }
+
+    showToast("Deleted successfully")
+
+    await refreshOrdersView()
+
+    // 🔥 MODAL HANDLING
+    const modal = document.getElementById("clientOrdersModal")
+    const isOpen = modal && getComputedStyle(modal).display !== "none"
+
+    if(!isOpen) return
+
+    // if client deleted OR no orders left → close modal
+    if(deleteClientAlso || clientOrders.length === 1){
+        closeOrders()
+        return
+    }
+
+    // else reload modal with updated orders
+    await openClientOrders(clientId)
 }
 
 function downloadDxf(id){
@@ -1304,7 +1438,17 @@ document.getElementById("imagePreviewModal").style.display="none"
 }
 
 window.addEventListener("DOMContentLoaded", function(){
+
     loadPage("orders")
+
+    // 🔥 update 0.45 default toggle state
+    setTimeout(()=>{
+        const toggle = document.querySelector(".toggle-switch")
+        if(toggle){
+            toggle.classList.remove("active") // Orders side
+        }
+    },100)
+
 })
 
 function toggleFilter(){
@@ -2383,5 +2527,217 @@ if(bulkClientId){
 }
 
 closePayment()
-openClientOrders(currentClientId)
+await refreshOrdersView()
+}
+
+
+// 🔥 update 0.43
+let allOrdersGlobal = []
+let currentViewMode = "orders"
+
+// 🔥 update 0.43
+async function switchViewOrders(){
+
+    
+    currentViewMode = "orders"
+
+    document.getElementById("clientsGrid").style.display = "none"
+    document.getElementById("ordersPage").style.display = "block"
+
+    if(allOrdersGlobal.length === 0){
+        await loadAllOrdersGlobal()
+    }
+
+    currentOrders = [...allOrdersGlobal]
+
+    setTimeout(()=>{
+        renderOrdersGlobal(currentOrders)
+    },0)
+
+    updateFilterUI()
+
+}
+
+// 🔥 update 0.43
+function switchViewClients(){
+
+    
+    currentViewMode = "clients"
+
+    document.getElementById("clientsGrid").style.display = "grid"
+    document.getElementById("ordersPage").style.display = "none"
+
+    updateFilterUI()
+}
+
+// 🔥 update 0.43
+async function loadAllOrdersGlobal(){
+
+    const res = await fetch("/api/orders")
+    const orders = await res.json()
+
+    orders.forEach(o=>{
+        const c = clientsCache.find(x=>x.id === o.clientId)
+        o.clientName = c?.name || "-"
+        o.clientPhone = c?.phone || "-"
+    })
+
+    orders.sort((a,b)=> b.id - a.id)
+
+    allOrdersGlobal = orders
+}
+
+// 🔥 update 0.43
+function applyOrdersDateFilter(){
+
+    const date = document.getElementById("globalOrderDate").value
+
+    let filtered = [...allOrdersGlobal]
+
+    if(date){
+        filtered = filtered.filter(o =>
+            o.createdAt &&
+            new Date(o.createdAt).toISOString().split("T")[0] === date
+        )
+    }
+
+    currentOrders = filtered
+    renderOrders(filtered)
+}
+
+// 🔥 update 0.43
+function searchGlobal(text){
+
+    if(currentViewMode === "clients"){
+        searchClients(text)
+    }else{
+
+        text = text.toLowerCase()
+
+        const filtered = allOrdersGlobal.filter(o =>
+            o.clientName.toLowerCase().includes(text) ||
+            o.clientPhone.includes(text)
+        )
+
+        currentOrders = filtered
+        renderOrders(filtered)
+    }
+}
+
+// 🔥 update 0.43 COMBINED FILTER
+
+function applyOrdersCombinedFilter(){
+
+    if(currentViewMode !== "orders") return
+
+    const date = document.getElementById("filterOrderDateGlobal").value
+
+    let list = [...allOrdersGlobal]
+
+    // ✅ 1. APPLY DATE FILTER
+    if(date){
+        list = list.filter(o =>
+            o.createdAt &&
+            new Date(o.createdAt).toISOString().split("T")[0] === date
+        )
+    }
+
+    // ✅ 2. APPLY RADIO FILTER ON SAME LIST
+    const selected = document.querySelector("input[name='filter']:checked")
+
+    if(selected){
+
+        const type = selected.value
+
+        if(type === "recent"){
+            list.sort((a,b)=> new Date(b.createdAt) - new Date(a.createdAt))
+        }
+
+        if(type === "new"){
+            list.sort((a,b)=> b.id - a.id)
+        }
+
+        if(type === "orders"){
+            const countMap = {}
+
+            allOrdersGlobal.forEach(o=>{
+                countMap[o.clientId] = (countMap[o.clientId] || 0) + 1
+            })
+
+            list.sort((a,b)=>
+                (countMap[b.clientId]||0) - (countMap[a.clientId]||0)
+            )
+        }
+
+        // ❌ ignore name(A-Z)
+    }
+
+    currentOrders = list
+    renderOrdersGlobal(list) // 🔥 important (you use global container)
+}
+
+// 🔥 update 0.43 TOGGLE LOGIC
+function toggleViewSwitch(){
+
+    const toggle = document.querySelector(".toggle-switch")
+
+    toggle.classList.toggle("active")
+
+    if(toggle.classList.contains("active")){
+        switchViewClients()
+    }else{
+        switchViewOrders()
+    }
+}
+
+// 🔥 update 0.43 FIX MODAL OPEN
+function openClientOrdersFixed(clientId){
+
+    currentClientId = clientId
+
+    openClientOrders(clientId) // existing function
+}
+
+// 🔥 update 0.43 FIX EDIT
+function editOrderGlobal(id){
+
+    const order = allOrdersGlobal.find(o=>o.id === id)
+
+    if(order){
+        currentClientId = order.clientId
+        editOrder(id) // existing
+    }
+}
+
+// 🔥 update 0.43 FIX PAY
+function openPaymentGlobal(id){
+
+    const order = allOrdersGlobal.find(o=>o.id === id)
+
+    if(order){
+        currentClientId = order.clientId
+        openPayment(id)
+    }
+}
+
+// 🔥 update 0.48 FILTER UI CONTROL
+// 🔥 update 0.48 FINAL FILTER UI FIX
+function updateFilterUI(){
+
+    const nameFilter = document.querySelector("input[name='filter'][value='name']")?.closest("label")
+    const dateFilter = document.getElementById("filterOrderDateGlobal")?.closest("label")
+
+    if(!nameFilter || !dateFilter) return
+
+    if(currentViewMode === "orders"){
+
+        nameFilter.style.display = "none"
+        dateFilter.style.display = "block"
+
+    }else{
+
+        nameFilter.style.display = "block"
+        dateFilter.style.display = "none"
+
+    }
 }

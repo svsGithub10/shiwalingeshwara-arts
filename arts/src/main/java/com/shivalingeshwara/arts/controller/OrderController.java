@@ -289,4 +289,11 @@ public ResponseEntity<Resource> viewResult(@RequestParam String path) throws Exc
 
     return ResponseEntity.ok().body(resource);
 }
+
+// 🔥 update 0.43 - GET ALL ORDERS
+@GetMapping
+public List<Order> getAllOrders(){
+    return orderRepository.findAll();
+}
+
 }
