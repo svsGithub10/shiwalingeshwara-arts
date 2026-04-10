@@ -48,6 +48,7 @@ function loadPage(page){
         // ✅ ORDERS
         if(page === "orders"){
             loadClients()
+            switchViewOrders()
             initFilters()
         }
 
@@ -201,7 +202,14 @@ ${c.pendingAmount > 0 ? `
 ` : ``}
     </div>
 
-<div class="client-phone">${c.phone}</div>
+<div class="client-bottom">
+    <div class="client-phone">${c.phone}</div>
+
+    <button class="client-bill-btn"
+        onclick="event.stopPropagation();openBillModal(${c.id})">
+        🧾 Generate Bill
+    </button>
+</div>
 
 <div class="client-city">${c.city || ""}</div>
 
@@ -679,8 +687,8 @@ ${o.clientName ? `
 
         <div class="order-actions">
 
-            ${o.dxfFile ? `<button onclick="downloadDxf(${o.id})">DXF</button>` : ``}
-
+            <!-- ${o.dxfFile ? `<button onclick="downloadDxf(${o.id})">DXF</button>` : ``}-->
+            <button onclick="downloadSingleBill(${o.id})">🧾 Bill</button>
             <button onclick="editOrderGlobal(${o.id})">Edit</button>
 
             <button onclick="deleteOrder(${o.id})">Delete</button>
@@ -934,7 +942,7 @@ applyFilter(radio.value)
 async function saveOrder(){
 
 const name = document.getElementById("orderClientName").value.trim()
-const phone = document.getElementById("orderClientPhone").value.trim()
+let phone = document.getElementById("orderClientPhone").value.trim()
 const price = document.getElementById("orderPrice").value.trim()
 const workType = document.getElementById("orderWorkType").value
 
@@ -946,6 +954,16 @@ if(!name){
 if(!phone){
     showToast("Phone is required","error")
     return
+}
+
+if(!/^[9876]/.test(phone)){
+    showToast("Invalid number → set to default 0000000000","info")
+}
+
+// 🔥 FORCE RULE: invalid starting digit → 0000000000
+if(!/^[9876]/.test(phone)){
+    phone = "0000000000"
+    document.getElementById("orderClientPhone").value = phone
 }
 
 if(!/^\d{10}$/.test(phone)){
@@ -989,6 +1007,8 @@ if(isLaser && !file){
     showToast("DXF file is required for Laser work", "error")
     return
 }
+
+
 
 await fetch("/api/orders",{
 method:"POST",
@@ -2740,4 +2760,341 @@ function updateFilterUI(){
         dateFilter.style.display = "none"
 
     }
+}
+
+// ================= GLOBAL =================
+
+let billOrdersTemp = []
+let selectedClientOrders = []
+let isSelectionMode = false
+
+// ================= SINGLE BILL =================
+
+window.downloadSingleBill = async function(orderId){
+
+    try{
+        const res = await fetch("/api/orders/" + orderId)
+        const order = await res.json()
+
+        const client = clientsCache.find(c => c.id === order.clientId)
+
+        order.clientName = client?.name || ""
+        order.clientPhone = client?.phone || ""
+
+        billOrdersTemp = [order]
+        isSelectionMode = false
+
+        openBillModalUI()
+
+    }catch(e){
+        console.error(e)
+        alert("Error loading order")
+    }
+}
+
+// ================= MULTI BILL =================
+
+window.openBillModal = async function(clientId){
+
+    const res = await fetch("/api/orders/client/" + clientId)
+    const orders = await res.json()
+
+    selectedClientOrders = orders
+    isSelectionMode = true
+
+    const container = document.getElementById("billOrdersList")
+    container.innerHTML = ""
+
+    orders.forEach(o=>{
+        const price = parseInt(o.price || 0)
+
+        container.innerHTML += `
+        <div style="padding:8px;border-bottom:1px solid #ddd;">
+            <label>
+                <input type="checkbox" value="${o.id}">
+                #${o.id} | ₹${price} | ${o.status}
+            </label>
+        </div>
+        `
+    })
+
+    document.getElementById("billModal").style.display = "flex"
+}
+
+// ================= GENERATE CLICK =================
+
+window.generateBillFinal = async function(){
+
+    if(isSelectionMode){
+
+        const checkboxes = document.querySelectorAll("#billOrdersList input:checked")
+
+        if(checkboxes.length === 0){
+            alert("Select at least one order")
+            return
+        }
+
+        const selectedIds = Array.from(checkboxes).map(cb => parseInt(cb.value))
+
+        const selectedOrders = selectedClientOrders.filter(o =>
+            selectedIds.includes(o.id)
+        )
+
+        selectedOrders.forEach(o=>{
+            const client = clientsCache.find(c => c.id === o.clientId)
+            o.clientName = client?.name || ""
+            o.clientPhone = client?.phone || ""
+        })
+
+        billOrdersTemp = selectedOrders
+        isSelectionMode = false
+
+        openBillModalUI()
+        return
+    }
+
+    if(!billOrdersTemp.length){
+        alert("No orders selected")
+        return
+    }
+
+    const upiId = document.getElementById("billUpiSelect").value
+
+    closeBillModal()
+
+    await generateInvoicePDF(billOrdersTemp, upiId)
+
+    billOrdersTemp = []
+}
+
+// ================= PREVIEW =================
+
+function openBillModalUI(){
+
+    const container = document.getElementById("billOrdersList")
+    container.innerHTML = ""
+
+    let total = 0
+
+    billOrdersTemp.forEach(o=>{
+        const price = parseInt(o.price || 0)
+        total += price
+
+        container.innerHTML += `
+        <div style="padding:6px;border-bottom:1px solid #ddd;">
+            #${o.id} | ₹${price}
+        </div>
+        `
+    })
+
+    container.innerHTML += `
+        <div style="padding:8px;font-weight:bold;">
+            Total: ₹${total}
+        </div>
+    `
+
+    document.getElementById("billModal").style.display = "flex"
+}
+
+// ================= CLOSE =================
+
+function closeBillModal(){
+    document.getElementById("billModal").style.display = "none"
+}
+
+// ================= IMAGE =================
+
+async function loadImageBase64(url){
+    try{
+        const res = await fetch(url)
+        if(!res.ok) return null
+
+        const blob = await res.blob()
+
+        return await new Promise(resolve=>{
+            const reader = new FileReader()
+            reader.onloadend = ()=> resolve(reader.result)
+            reader.readAsDataURL(blob)
+        })
+    }catch{
+        return null
+    }
+}
+
+// ================= NUMBER TO WORDS =================
+
+function numberToWords(num){
+
+    num = parseInt(num || 0)
+
+    const a = ["","One","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten",
+               "Eleven","Twelve","Thirteen","Fourteen","Fifteen","Sixteen","Seventeen",
+               "Eighteen","Nineteen"]
+
+    const b = ["","","Twenty","Thirty","Forty","Fifty","Sixty","Seventy","Eighty","Ninety"]
+
+    function inWords(n){
+        if(n < 20) return a[n]
+        if(n < 100) return b[Math.floor(n/10)] + " " + a[n%10]
+        if(n < 1000) return a[Math.floor(n/100)] + " Hundred " + inWords(n%100)
+        if(n < 100000) return inWords(Math.floor(n/1000)) + " Thousand " + inWords(n%1000)
+        if(n < 10000000) return inWords(Math.floor(n/100000)) + " Lakh " + inWords(n%100000)
+        return inWords(Math.floor(n/10000000)) + " Crore " + inWords(n%10000000)
+    }
+
+    return inWords(num).replace(/\s+/g,' ').trim() + " Rupees Only"
+}
+
+// ================= QR =================
+
+function getUPIQR(amount, upiId){
+
+    const name = "Shivalingeshwara Arts"
+
+    const upi = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(name)}&am=${amount}&cu=INR`
+
+    return "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" + encodeURIComponent(upi)
+}
+
+// ================= PDF =================
+
+window.generateInvoicePDF = async function(orders, upiId = "8431983269@ybl"){
+
+    const { jsPDF } = window.jspdf
+    const doc = new jsPDF()
+
+    doc.setFont("helvetica", "normal")
+    doc.setFontSize(12)
+    doc.setCharSpace(0)
+
+    const logo = await loadImageBase64("/images/logo.png")
+    // const sign = await loadImageBase64("/images/signature.png")
+    const upiLogo = await loadImageBase64("/images/upi.png")
+
+    const client = orders[0]
+
+    const today = new Date().toLocaleDateString("en-GB")
+    const invoiceNo = `INV-${new Date().getFullYear()}-${Date.now().toString().slice(-4)}`
+
+    if(logo){
+        doc.addImage(logo, "PNG", 10, 10, 10, 10)
+    }
+
+    doc.setFontSize(14)
+    doc.text("Shivalingeshwara Arts", 25, 14)
+
+    doc.setFontSize(16)
+    doc.text("INVOICE", 150, 14)
+
+    doc.setFontSize(10)
+    doc.text(`Invoice No: ${invoiceNo}`, 140, 22)
+    doc.text(`Date: ${today}`, 140, 28)
+
+    doc.line(10, 35, 200, 35)
+
+    doc.text(`Client: ${client.clientName}`, 10, 45)
+    doc.text(`Phone: ${client.clientPhone}`, 140, 45)
+
+    let total = 0
+
+    const rows = orders.map((o, i)=>{
+        const price = parseInt(o.price || 0)
+        total += price
+
+        return [
+            i+1,
+            `#${o.id}`,
+            o.workType || "-",
+            o.materials || "-",
+            o.remark || "-",
+            o.createdAt ? new Date(o.createdAt).toLocaleDateString("en-GB") : "-",
+            `Rs ${price}`
+        ]
+    })
+
+    doc.autoTable({
+        startY: 55,
+        head: [["Sl","Order ID","Work","Material","Details","Date","Price"]],
+        body: rows
+    })
+
+    let finalY = doc.lastAutoTable.finalY + 10
+
+    doc.setFont("helvetica","bold")
+    doc.text(`Total: Rs ${total}`, 10, finalY)
+
+    finalY += 6
+
+    doc.setFont("helvetica","normal")
+    doc.text(`(${numberToWords(total)})`, 10, finalY)
+
+    const qr = getUPIQR(total, upiId)
+    const qrImg = await loadImageBase64(qr)
+
+    if(qrImg){
+        doc.addImage(qrImg, "PNG", 10, finalY + 10, 35, 35)
+    }
+
+    if(upiLogo){
+        doc.addImage(upiLogo, "PNG", 12, finalY + 48, 30, 10)
+    }
+
+    doc.setFontSize(9)
+    doc.text("Pay using any UPI app", 12, finalY + 62)
+
+    // if(sign){
+    //     doc.addImage(sign, "PNG", 140, finalY + 15, 35, 18)
+    // }
+
+    doc.text("Shivalingeshwara Arts", 140, finalY + 38)
+
+    const pageHeight = doc.internal.pageSize.height
+
+    doc.line(10, pageHeight - 20, 200, pageHeight - 20)
+
+    doc.text("Hukkeri Math Complex, MG Road,", 10, pageHeight - 12)
+    doc.text("Haveri - 581110", 10, pageHeight - 6)
+
+    doc.text("Thank you! Visit again", 140, pageHeight - 6)
+
+    doc.save(`Invoice_${orders[0].id}.pdf`)
+}
+
+//Quick Payments--
+
+function openQuickPayment(){
+    document.getElementById("quickPaymentModal").style.display = "flex"
+
+    document.getElementById("quickAmount").value = ""
+    document.getElementById("quickQr").src = ""
+
+    document.getElementById("quickUpiSelect").value = "8431983269@ybl"
+
+    setTimeout(()=>{
+        document.getElementById("quickAmount").focus()
+    },200)
+}
+
+function closeQuickPayment(){
+    document.getElementById("quickPaymentModal").style.display = "none"
+}
+
+function updateQuickQR(){
+
+    const amount = document.getElementById("quickAmount").value
+    const upiId = document.getElementById("quickUpiSelect").value
+    const name = "SHANTVEERESH SHEELAVANTAR"
+
+    if(!amount || amount <= 0){
+        document.getElementById("quickQr").src = ""
+        return
+    }
+
+    const upiUrl = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(name)}&am=${amount}&cu=INR`
+
+    const qrUrl =
+        "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" +
+        encodeURIComponent(upiUrl)
+
+    document.getElementById("quickQr").src = qrUrl
 }

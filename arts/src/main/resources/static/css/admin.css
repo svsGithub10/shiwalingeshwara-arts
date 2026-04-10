@@ -2317,3 +2317,190 @@ input[type="date"]::-webkit-calendar-picker-indicator{
     filter: invert(0.6);
     cursor:pointer;
 }
+
+/* ===============================
+   CLIENT BOTTOM ROW (NEW)
+================================ */
+
+.client-bottom{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:10px;
+}
+
+/* PHONE */
+.client-bottom .client-phone{
+    font-size:13px;
+    color:var(--subtext);
+}
+
+/* BILL BUTTON (MATCH THEME) */
+
+.client-bill-btn{
+    background:var(--hover);
+    color:var(--text);
+    border:none;
+    padding:6px 10px;
+    border-radius:6px;
+    cursor:pointer;
+}
+
+.client-bill-btn:hover{
+    background:var(--primary);
+    color:white;
+}
+
+
+
+
+/* ===============================
+   BILL LIST (UPGRADED)
+================================ */
+
+#billOrdersList{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    margin:12px 0;
+}
+
+/* ORDER ROW (CARD STYLE) */
+#billOrdersList .bill-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+
+    padding:10px 12px;
+    border-radius:10px;
+
+    background:var(--card);
+    border:1px solid var(--border);
+
+    transition:0.25s;
+    cursor:pointer;
+}
+
+/* HOVER EFFECT */
+#billOrdersList .bill-row:hover{
+    border-color:var(--primary);
+    background:var(--hover);
+    transform:translateY(-1px);
+}
+
+/* LEFT SIDE (checkbox + text) */
+.bill-left{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-size:13px;
+}
+
+/* ===============================
+   CUSTOM CHECKBOX
+================================ */
+
+.bill-checkbox{
+    appearance:none;
+    width:16px;
+    height:16px;
+
+    border:2px solid var(--border);
+    border-radius:4px;
+
+    display:inline-block;
+    position:relative;
+    cursor:pointer;
+
+    transition:0.2s;
+}
+
+/* CHECKED */
+.bill-checkbox:checked{
+    background:linear-gradient(135deg,var(--primary),var(--accent));
+    border-color:transparent;
+}
+
+/* CHECK ICON */
+.bill-checkbox:checked::after{
+    content:"✔";
+    position:absolute;
+    top:-2px;
+    left:2px;
+    font-size:11px;
+    color:white;
+}
+
+/* ===============================
+   PRICE TEXT
+================================ */
+
+.bill-price{
+    font-weight:600;
+    font-size:13px;
+}
+
+/* ===============================
+   TOTAL ROW
+================================ */
+
+.total-row{
+    display:flex;
+    justify-content:space-between;
+    font-weight:600;
+    padding:10px 4px;
+    border-top:1px solid var(--border);
+}
+
+/* ===============================
+   BUTTONS (UPGRADED)
+================================ */
+
+.bill-actions{
+    display:flex;
+    justify-content:flex-end;
+    gap:10px;
+    margin-top:12px;
+}
+
+/* BASE BUTTON */
+.bill-actions button{
+    padding:8px 16px;
+    border-radius:8px;
+    border:none;
+    cursor:pointer;
+
+    font-size:13px;
+    font-weight:500;
+
+    transition:0.25s;
+}
+
+/* CANCEL */
+.bill-cancel{
+    background:var(--hover);
+    color:var(--text);
+}
+
+.bill-cancel:hover{
+    background:#e5e7eb;
+}
+
+/* GENERATE (PRIMARY CTA) */
+.bill-generate{
+    background:linear-gradient(135deg,var(--primary),var(--accent));
+    color:white;
+
+    box-shadow:0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* HOVER */
+.bill-generate:hover{
+    transform:translateY(-1px);
+    box-shadow:0 6px 18px rgba(0,0,0,0.25);
+}
+
+/* CLICK */
+.bill-generate:active{
+    transform:scale(0.96);
+}

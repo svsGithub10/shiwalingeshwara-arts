@@ -30,6 +30,10 @@ oninput="searchGlobal(this.value)">
 </div>
 </div>
 
+<button class="pay-all-btn" onclick="openQuickPayment()">
+    💰 Payment
+</button>
+
 
 <!-- 🔥 update 0.43: TOGGLE SWITCH -->
 <div class="view-toggle" style="margin-left:auto;">
@@ -389,3 +393,75 @@ oninput="searchGlobal(this.value)">
 </div>
 </div>
 
+<div id="billModal" class="modal">
+  <div class="modal-box">
+
+    <div class="modal-header">
+        <h3>Generate Bill</h3>
+        <button class="modal-close" onclick="closeBillModal()">✕</button>
+    </div>
+
+    <div id="billOrdersList"></div>
+
+    <div class="upi-field">
+        <label class="upi-label">Select UPI</label>
+        <select id="billUpiSelect" class="upi-select">
+            <option value="8431983269@ybl">8431983269@ybl</option>
+            <option value="9448231988@ybl">9448231988@ybl</option>
+        </select>
+    </div>
+
+    <div class="bill-actions">
+        <button class="bill-cancel" onclick="closeBillModal()">Cancel</button>
+        <button class="bill-generate" onclick="generateBillFinal()">Generate</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- 🔥 QUICK QR PAYMENT MODAL (NEW - SAFE) -->
+<div id="quickPaymentModal" class="modal">
+
+<div class="modal-box" style="width:420px; position:relative;">
+
+    <!-- CLOSE -->
+    <button 
+        class="modal-close"
+        onclick="closeQuickPayment()"
+        style="position:absolute; top:12px; right:12px;">
+        ✕
+    </button>
+
+    <h3>Quick Payment</h3><br>
+
+    <!-- UPI SELECT -->
+    <div class="upi-field">
+        <label class="upi-label">Paying to</label>
+
+        <div class="upi-select-wrapper">
+            <select id="quickUpiSelect" onchange="updateQuickQR()" class="upi-select">
+                <option value="8431983269@ybl">Shantveeresh Sheelavantar</option>
+                <option value="9448231988@ybl">Veeranna Sheelavantar</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- QR -->
+    <div class="qr-section">
+        <img id="quickQr" class="qr-img"><br>
+        <img 
+            src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/UPI_logo.svg/1280px-UPI_logo.svg.png"
+            class="upi-logo">
+    </div>
+
+    <!-- AMOUNT -->
+    <label>Amount</label>
+    <input type="number" id="quickAmount" oninput="updateQuickQR()">
+
+    <!-- ACTION -->
+    <div class="modal-actions">
+        <button onclick="closeQuickPayment()">Close</button>
+    </div>
+
+</div>
+</div>
