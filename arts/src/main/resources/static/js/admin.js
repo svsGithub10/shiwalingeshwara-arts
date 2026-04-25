@@ -132,6 +132,27 @@ function showToast(message, type="success"){
     },3000)
 }
 
+const BG_COLORS = [
+    { value: "WHITE", label: "White", code: "#ffffff" },
+    { value: "BLACK", label: "Black", code: "#000000" },
+    { value: "RED", label: "Red", code: "#ef4444" },
+    { value: "BLUE", label: "Blue", code: "#002e79" },
+    { value: "GREEN", label: "Green", code: "#007a2d" },
+    { value: "PINK", label: "Pink", code: "#db25c3" },
+]
+
+function updateBgPreview(type){
+
+    const select = document.getElementById(type + "BgColor")
+    const preview = document.getElementById(type + "BgPreview")
+
+    const value = select.value
+
+    const c = BG_COLORS.find(x => x.value === value)
+
+    preview.style.background = c ? c.code : "transparent"
+}
+
 let clientsCache = []
 
 
@@ -256,6 +277,7 @@ function addOrderForClient(clientId){
         document.getElementById("orderClientCity").value = client.city || ""
 
     },100)
+    
 }
 
 document.querySelectorAll("input[name='filter']")
@@ -588,10 +610,35 @@ function getProgressStep(status){
     return 1
 }
 
+function getBgColorCode(value){
+    const c = BG_COLORS.find(x => x.value === value)
+    return c ? c.code : "var(--card)"
+}
+
+function loadBgOptions(){
+
+    const newSelect = document.getElementById("orderBgColor")
+    const editSelect = document.getElementById("editBgColor")
+
+    const options = BG_COLORS.map(c =>
+        `<option value="${c.value}">${c.label}</option>`
+    ).join("")
+
+    if(newSelect){
+        newSelect.innerHTML = `<option value="">Select Background Sheet</option>` + options
+    }
+
+    if(editSelect){
+        editSelect.innerHTML = `<option value="">Select Background Sheet</option>` + options
+    }
+}
+
 function renderOrders(orders){
 
 const container = document.getElementById("ordersList")
 container.innerHTML=""
+
+orders.sort((a,b)=> new Date(b.createdAt) - new Date(a.createdAt))
 
 orders.forEach(o=>{
 
@@ -663,6 +710,19 @@ ${o.clientName ? `
 
         <div class="order-info">
             <b>Material:</b> ${o.materials || "-"} <br>
+
+<b>BG Sheet:</b> 
+<span style="
+    display:inline-block;
+    width:12px;
+    height:12px;
+    background:${getBgColorPreview(o.bgColor)};
+    border-radius:2px;
+    margin-right:5px;
+"></span>
+${o.bgColor || "-"} <br>
+
+            <b>Height:</b> ${o.height ? o.height + " in" : "-"} <br>
             <!--<b>Material 2:</b> ${o.topLayer || "-"} <br>--!>
             <b>Notes:</b> ${o.remark || "-"}
         </div>
@@ -716,14 +776,27 @@ Deliver
 
 }
 
+function getBgColorPreview(value){
+    const c = BG_COLORS.find(x => x.value === value)
+    return c ? c.code : "#ccc"
+}
+
 // 🔥 update 0.43
 async function refreshOrdersView(){
 
-    await loadClients()              // always refresh clients
-    await loadAllOrdersGlobal()      // always refresh orders
+    await loadClients();
+    await loadAllOrdersGlobal();
 
     if(currentViewMode === "orders"){
-        renderOrdersGlobal(allOrdersGlobal)
+        renderOrdersGlobal(allOrdersGlobal);
+    }
+
+    // 🔥 NEW: refresh modal if open
+    const modal = document.getElementById("clientOrdersModal");
+    const isOpen = modal && getComputedStyle(modal).display !== "none";
+
+    if(isOpen && currentClientId){
+        await openClientOrders(currentClientId);
     }
 }
 
@@ -786,7 +859,8 @@ function openNewOrder(){
 document.getElementById("newOrderModal").style.display="flex"
 
 loadMaterialsForOrder()
-
+loadBgOptions()
+setTimeout(() => updateBgPreview('order'), 100)
 setTimeout(()=>{
     renderMaterialOptions(allMaterials)
 },200)
@@ -951,10 +1025,20 @@ if(!name){
     return
 }
 
+// if(!bg){
+//     showToast("Select background sheet","error")
+//     return
+// }
+
 if(!phone){
     showToast("Phone is required","error")
     return
 }
+
+// if(!height || height <= 0){
+//     showToast("Enter valid height in inches","error")
+//     return
+// }
 
 if(!/^[9876]/.test(phone)){
     showToast("Invalid number → set to default 0000000000","info")
@@ -990,7 +1074,8 @@ formData.append("city", document.getElementById("orderClientCity").value)
 formData.append("workType", document.getElementById("orderWorkType").value)
 formData.append("materials", document.getElementById("materialSearch").value)
 // formData.append("topLayer", document.getElementById("orderTopLayer").value)
-
+formData.append("bgColor", document.getElementById("orderBgColor").value)
+formData.append("height", document.getElementById("orderHeight").value)
 formData.append("remark", document.getElementById("orderRemark").value)
 formData.append("price", document.getElementById("orderPrice").value)
 formData.append("advance", document.getElementById("orderAdvance").value)
@@ -1176,6 +1261,9 @@ document.getElementById("editOrderModal").style.display="flex"
 
 document.getElementById("editOrderId").value = id
 document.getElementById("editWorkType").value = order.workType
+loadBgOptions()
+document.getElementById("editBgColor").value = order.bgColor || ""
+document.getElementById("editHeight").value = order.height || ""
 document.getElementById("editRemark").value = order.remark
 document.getElementById("editPrice").value = order.price
 document.getElementById("editAdvance").value = order.advancePaid || 0
@@ -1187,6 +1275,7 @@ document.getElementById("editCreatedAt").value =
 // ✅ reset file input
 document.getElementById("editDxf").value = ""
 
+updateBgPreview('edit')
 /* load materials */
 await loadMaterialsForEdit(order)
 
@@ -1350,7 +1439,8 @@ const formData = new FormData()
 formData.append("workType", document.getElementById("editWorkType").value)
 formData.append("materials", document.getElementById("editMaterialSearch").value)
 // formData.append("topLayer", document.getElementById("editTopLayer").value)
-
+formData.append("bgColor", document.getElementById("editBgColor").value)
+formData.append("height", document.getElementById("editHeight").value)
 formData.append("remark", document.getElementById("editRemark").value)
 formData.append("price", document.getElementById("editPrice").value)
 formData.append("advance", document.getElementById("editAdvance").value)
@@ -1964,6 +2054,87 @@ function loadFinanceDashboard(){
     loadYearlyCard()
 }
 
+//EXCEL REPORT --
+
+async function generateFinanceReport(){
+
+    // 🔥 SAFE FORMATTERS
+    function safe(val){
+        return val ?? 0
+    }
+
+    function money(val){
+        return Number(val || 0)
+    }
+
+    // 🔹 Fetch Data
+    const summary = await (await fetch("/api/finance/summary?date=" + formatDate(selectedDate))).json()
+    const monthly = await (await fetch("/api/finance/monthly")).json()
+    const yearly = await (await fetch("/api/finance/yearly")).json()
+
+    const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+    const mKey = monthNames[selectedMonth.getMonth()]
+    const yKey = selectedYear
+
+    const m = monthly[mKey] || {}
+    const y = yearly[yKey] || {}
+
+    // ======================
+    // BUILD EXCEL DATA
+    // ======================
+
+    const data = [
+
+        ["Shivalingeshwara Arts - Finance Report"],
+        ["Generated:", new Date().toLocaleString()],
+        [],
+
+        ["ORDER SUMMARY"],
+        ["Metric", "Value"],
+        ["Total Orders", safe(summary.totalOrders)],
+        ["In Progress", safe(summary.inProgress)],
+        ["Completed", safe(summary.completed)],
+        ["Delivered", safe(summary.delivered)],
+        [],
+
+        ["MONTHLY REPORT (" + mKey + " " + selectedMonth.getFullYear() + ")"],
+        ["Metric", "Value"],
+        ["Orders", safe(m.orders)],
+        ["Revenue", money(m.revenue)],
+        ["Expenses", money(m.expenses)],
+        ["Profit", money(m.profit)],
+        [],
+
+        ["YEARLY REPORT (" + selectedYear + ")"],
+        ["Metric", "Value"],
+        ["Orders", safe(y.orders)],
+        ["Revenue", money(y.revenue)],
+        ["Expenses", money(y.expenses)],
+        ["Profit", money(y.profit)],
+        [],
+
+        ["OVERALL FINANCE"],
+        ["Metric", "Value"],
+        ["Total Revenue", money(summary.totalRevenue)],
+        ["Total Expenses", money(summary.totalExpenses)],
+        ["Profit / Loss", money(summary.totalProfit)]
+
+    ]
+
+    // ======================
+    // CREATE WORKBOOK
+    // ======================
+    const ws = XLSX.utils.aoa_to_sheet(data)
+    const wb = XLSX.utils.book_new()
+
+    XLSX.utils.book_append_sheet(wb, ws, "Finance Report")
+
+    // ======================
+    // DOWNLOAD FILE
+    // ======================
+    XLSX.writeFile(wb, "finance-report.xlsx")
+}
+
 /* ===============================
    MATERIAL INVENTORY (VIEW ONLY)
 ================================ */
@@ -2299,44 +2470,7 @@ function closeFilePreview(){
 }
 
 
-async function saveExpense() {
 
-    let fileUrl = null
-    const fileInput = document.getElementById("file")
-
-    // ✅ Upload file if exists
-    if (fileInput.files.length > 0) {
-
-        const formData = new FormData()
-        formData.append("file", fileInput.files[0])
-
-        const res = await fetch("/api/upload", {
-            method: "POST",
-            body: formData
-        })
-
-        fileUrl = await res.text()
-    }
-
-    const data = {
-        title: document.getElementById("title").value,
-        type: document.getElementById("type").value,
-        category: document.getElementById("category").value,
-        amount: parseFloat(document.getElementById("amount").value),
-        date: document.getElementById("date").value,
-        note: document.getElementById("note").value,
-        fileUrl: fileUrl
-    }
-
-    await fetch("/api/expenses", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-    })
-
-    closeForm()
-    loadExpenses()
-}
 
 let editingId = null
 
@@ -3097,4 +3231,117 @@ function updateQuickQR(){
         encodeURIComponent(upiUrl)
 
     document.getElementById("quickQr").src = qrUrl
+}
+
+let autoRefreshInterval = null;
+
+function startAutoRefresh(){
+    if(autoRefreshInterval) return;
+
+    autoRefreshInterval = setInterval(()=>{
+        if(document.visibilityState === "visible"){
+            refreshOrdersView(); // your existing function
+        }
+    }, 1000); // 1 sec
+}
+
+function stopAutoRefresh(){
+    clearInterval(autoRefreshInterval);
+    autoRefreshInterval = null;
+}
+
+// start when page loads
+window.addEventListener("DOMContentLoaded", startAutoRefresh);
+
+// pause when tab inactive
+document.addEventListener("visibilitychange", ()=>{
+    if(document.hidden){
+        stopAutoRefresh();
+    }else{
+        startAutoRefresh();
+    }
+});
+
+async function generateExpenseReport(){
+
+    console.log("Expense report generating...")
+
+    if(typeof XLSX === "undefined"){
+        alert("Excel library not loaded!")
+        return
+    }
+
+    // 🔹 Get filter
+    const type = document.getElementById("filterType")?.value || ""
+
+    const url = type ? `/api/expenses?type=${type}` : "/api/expenses"
+
+    const res = await fetch(url)
+    const expenses = await res.json()
+
+    // 🔥 Formatters
+    function safe(val){
+        return val ?? ""
+    }
+
+    function money(val){
+        return Number(val || 0)
+    }
+
+    // ======================
+    // BUILD DATA
+    // ======================
+
+    const data = [
+
+        ["Shivalingeshwara Arts - Expense Report"],
+        ["Generated:", new Date().toLocaleString()],
+        ["Filter:", type || "ALL"],
+        [],
+
+        ["Date", "Title", "Type", "Category", "Note", "Amount"]
+
+    ]
+
+    let total = 0
+
+    expenses.forEach(e => {
+        data.push([
+            safe(e.date),
+            safe(e.title),
+            safe(e.type),
+            safe(e.category),
+            safe(e.note),
+            money(e.amount)
+        ])
+
+        total += Number(e.amount || 0)
+    })
+
+    // TOTAL ROW
+    data.push([])
+    data.push(["", "", "", "", "Total", total])
+
+    // ======================
+    // CREATE SHEET
+    // ======================
+    const ws = XLSX.utils.aoa_to_sheet(data)
+
+    // 🔥 AUTO WIDTH (professional touch)
+    ws["!cols"] = [
+        { wch: 12 }, // date
+        { wch: 20 }, // title
+        { wch: 12 }, // type
+        { wch: 18 }, // category
+        { wch: 25 }, // note
+        { wch: 12 }  // amount
+    ]
+
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, "Expenses")
+
+    // ======================
+    // DOWNLOAD
+    // ======================
+    XLSX.writeFile(wb, "expense-report.xlsx")
 }

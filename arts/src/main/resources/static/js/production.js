@@ -127,6 +127,15 @@ function showToast(message, type="success"){
     },3000)
 }
 
+const BG_COLORS = [
+    { value: "WHITE", label: "White", code: "#ffffff" },
+    { value: "BLACK", label: "Black", code: "#000000" },
+    { value: "RED", label: "Red", code: "#ef4444" },
+    { value: "BLUE", label: "Blue", code: "#002e79" },
+    { value: "GREEN", label: "Green", code: "#007a2d" },
+    { value: "PINK", label: "Pink", code: "#db25c3" },
+]
+
 let lastOrderHash = ""
 let knownOrderIds = new Set()
 
@@ -617,6 +626,16 @@ function playNewOrderSound(){
     audio.play().catch(()=>{}) // avoid browser block error
 }
 
+function getBgColorCode(value){
+    const c = BG_COLORS.find(x => x.value === value)
+    return c ? c.code : "#ccc"
+}
+
+function getBgColorLabel(value){
+    const c = BG_COLORS.find(x => x.value === value)
+    return c ? c.label : (value || "-")
+}
+
 function renderProductionOrders(orders){
 
 const container = document.getElementById("productionOrders")
@@ -657,7 +676,23 @@ container.innerHTML += `
 
         <div class="prod-info">
             <b>Material:</b> ${o.materials || "-"} <br>
-            <b>Material 2:</b> ${o.topLayer || "-"} <br>
+            <!-- <b>Material 2:</b> ${o.topLayer || "-"} <br> -->
+
+                <b>BG Sheet:</b> 
+    <span style="
+        display:inline-block;
+        width:12px;
+        height:12px;
+        background:${getBgColorCode(o.bgColor)};
+        border-radius:2px;
+        margin:0 5px;
+        vertical-align:middle;
+        border:1px solid #ccc;
+    "></span>
+    ${getBgColorLabel(o.bgColor)} <br>
+
+    <b>Height:</b> ${o.height ? o.height + " in" : "-"} <br>
+
             <b>Remark:</b> ${o.remark || "-"} <br>
             <b>Date:</b> ${o.createdAt ? new Date(o.createdAt).toLocaleDateString() : "-"}
         </div>
@@ -1506,3 +1541,168 @@ function toggleSidebar(){
 
 }
 
+
+//EXCEL REPORT --
+
+async function generateFinanceReport(){
+
+    // 🔥 SAFE FORMATTERS
+    function safe(val){
+        return val ?? 0
+    }
+
+    function money(val){
+        return Number(val || 0)
+    }
+
+    // 🔹 Fetch Data
+    const summary = await (await fetch("/api/finance/summary?date=" + formatDate(selectedDate))).json()
+    const monthly = await (await fetch("/api/finance/monthly")).json()
+    const yearly = await (await fetch("/api/finance/yearly")).json()
+
+    const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+    const mKey = monthNames[selectedMonth.getMonth()]
+    const yKey = selectedYear
+
+    const m = monthly[mKey] || {}
+    const y = yearly[yKey] || {}
+
+    // ======================
+    // BUILD EXCEL DATA
+    // ======================
+
+    const data = [
+
+        ["Shivalingeshwara Arts - Finance Report"],
+        ["Generated:", new Date().toLocaleString()],
+        [],
+
+        ["ORDER SUMMARY"],
+        ["Metric", "Value"],
+        ["Total Orders", safe(summary.totalOrders)],
+        ["In Progress", safe(summary.inProgress)],
+        ["Completed", safe(summary.completed)],
+        ["Delivered", safe(summary.delivered)],
+        [],
+
+        ["MONTHLY REPORT (" + mKey + " " + selectedMonth.getFullYear() + ")"],
+        ["Metric", "Value"],
+        ["Orders", safe(m.orders)],
+        ["Revenue", money(m.revenue)],
+        ["Expenses", money(m.expenses)],
+        ["Profit", money(m.profit)],
+        [],
+
+        ["YEARLY REPORT (" + selectedYear + ")"],
+        ["Metric", "Value"],
+        ["Orders", safe(y.orders)],
+        ["Revenue", money(y.revenue)],
+        ["Expenses", money(y.expenses)],
+        ["Profit", money(y.profit)],
+        [],
+
+        ["OVERALL FINANCE"],
+        ["Metric", "Value"],
+        ["Total Revenue", money(summary.totalRevenue)],
+        ["Total Expenses", money(summary.totalExpenses)],
+        ["Profit / Loss", money(summary.totalProfit)]
+
+    ]
+
+    // ======================
+    // CREATE WORKBOOK
+    // ======================
+    const ws = XLSX.utils.aoa_to_sheet(data)
+    const wb = XLSX.utils.book_new()
+
+    XLSX.utils.book_append_sheet(wb, ws, "Finance Report")
+
+    // ======================
+    // DOWNLOAD FILE
+    // ======================
+    XLSX.writeFile(wb, "finance-report.xlsx")
+}
+
+async function generateExpenseReport(){
+
+    console.log("Expense report generating...")
+
+    if(typeof XLSX === "undefined"){
+        alert("Excel library not loaded!")
+        return
+    }
+
+    // 🔹 Get filter
+    const type = document.getElementById("filterType")?.value || ""
+
+    const url = type ? `/api/expenses?type=${type}` : "/api/expenses"
+
+    const res = await fetch(url)
+    const expenses = await res.json()
+
+    // 🔥 Formatters
+    function safe(val){
+        return val ?? ""
+    }
+
+    function money(val){
+        return Number(val || 0)
+    }
+
+    // ======================
+    // BUILD DATA
+    // ======================
+
+    const data = [
+
+        ["Shivalingeshwara Arts - Expense Report"],
+        ["Generated:", new Date().toLocaleString()],
+        ["Filter:", type || "ALL"],
+        [],
+
+        ["Date", "Title", "Type", "Category", "Note", "Amount"]
+
+    ]
+
+    let total = 0
+
+    expenses.forEach(e => {
+        data.push([
+            safe(e.date),
+            safe(e.title),
+            safe(e.type),
+            safe(e.category),
+            safe(e.note),
+            money(e.amount)
+        ])
+
+        total += Number(e.amount || 0)
+    })
+
+    // TOTAL ROW
+    data.push([])
+    data.push(["", "", "", "", "Total", total])
+
+    // ======================
+    // CREATE SHEET
+    // ======================
+    const ws = XLSX.utils.aoa_to_sheet(data)
+
+    // 🔥 AUTO WIDTH (professional touch)
+    ws["!cols"] = [
+        { wch: 12 }, // date
+        { wch: 20 }, // title
+        { wch: 12 }, // type
+        { wch: 18 }, // category
+        { wch: 25 }, // note
+        { wch: 12 }  // amount
+    ]
+
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, "Expenses")
+
+    // ======================
+    // DOWNLOAD
+    // ======================
+    XLSX.writeFile(wb, "expense-report.xlsx")
+}

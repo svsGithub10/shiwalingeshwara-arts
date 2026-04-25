@@ -177,7 +177,8 @@ oninput="searchGlobal(this.value)">
 
 <select id="orderWorkType" required>
     <option value="">Select Work Type</option>
-    <option value="LASER_CUT">Laser Work</option>
+    <option value="LASER_CUT">Laser Cut</option>
+    <option value="LASER_ENGRAVE">Laser Engrave</option>
     <option value="STICKER_WORK">Sticker Work</option>
     <option value="PRINT">Printing / Computer work</option>
     <option value="BANNER_FLEX">Banner / Flex</option>
@@ -196,6 +197,23 @@ oninput="searchGlobal(this.value)">
     <div class="options" id="materialOptions"></div>
 
 </div>
+
+
+<div style="display:flex;align-items:center;gap:10px;">
+    <select id="orderBgColor" onchange="updateBgPreview('order')">
+        <option value="">Select Sheet</option>
+    </select>
+
+    <div id="orderBgPreview" style="
+        width:20px;
+        height:20px;
+        border-radius:4px;
+        border:1px solid #ccc;
+    "></div>
+</div>
+
+
+<input type="number" id="orderHeight" placeholder="Height in inches">
 
 <!-- TOP LAYER -->
 <!-- <div class="inline-field">
@@ -311,7 +329,8 @@ oninput="searchGlobal(this.value)">
 
 <select id="editWorkType" required>
     <option value="">Select Work Type</option>
-    <option value="LASER_CUT">Laser Work</option>
+    <option value="LASER_CUT">Laser Cut</option>
+    <option value="LASER_ENGRAVE">Laser Engrave</option>
     <option value="STICKER_WORK">Sticker Work</option>
     <option value="PRINT">Printing / Computer work</option>
     <option value="BANNER_FLEX">Banner / Flex</option>
@@ -330,6 +349,21 @@ oninput="searchGlobal(this.value)">
     <div class="options" id="editMaterialOptions"></div>
 
 </div>
+
+
+<div style="display:flex;align-items:center;gap:10px;">
+    <select id="editBgColor" onchange="updateBgPreview('edit')"></select>
+
+    <div id="editBgPreview" style="
+        width:20px;
+        height:20px;
+        border-radius:4px;
+        border:1px solid #ccc;
+    "></div>
+</div>
+
+
+<input type="number" id="editHeight" placeholder="Height in inches">
 
 <!-- 🔍 TOP LAYER -->
 <!-- <div class="inline-field">

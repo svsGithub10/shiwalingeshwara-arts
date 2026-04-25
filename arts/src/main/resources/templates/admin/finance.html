@@ -45,7 +45,7 @@
 
 
 
-<div class="card" style="margin: 10px 0;">
+<!-- <div class="card" style="margin: 10px 0;">
 
 <div class="chart-controls">
     <button onclick="loadDaily()" class="chart-btn">Daily</button>
@@ -54,8 +54,16 @@
 </div>
 
 
-<!-- SECTION 4 -->
+
 <div class="card">
 <canvas id="financeChart"></canvas>
 </div>
-</div>
+</div> -->
+
+<button type="button" onclick="generateFinanceReport()" class="chart-btn">
+    Download Report
+</button>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>

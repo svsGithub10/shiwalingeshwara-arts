@@ -36,6 +36,8 @@ public Order createOrder(
         @RequestParam String workType,
         @RequestParam(required=false) String materials,
         @RequestParam(required=false) String topLayer,
+        @RequestParam(required=false) String bgColor,
+        @RequestParam(required=false) Double height,   
         @RequestParam(required=false) String remark,
         @RequestParam Double price,
         @RequestParam Double advance,
@@ -59,6 +61,8 @@ public Order createOrder(
     o.setWorkType(workType);
     o.setMaterials(materials);
     o.setTopLayer(topLayer);
+    o.setBgColor(bgColor);
+    o.setHeight(height);
     o.setRemark(remark);
     o.setPrice(price);
     o.setAdvancePaid(advance);
@@ -98,6 +102,8 @@ public Order updateOrder(
         @RequestParam String workType,
         @RequestParam String materials,
         @RequestParam(required=false) String topLayer,
+        @RequestParam(required=false) String bgColor,
+        @RequestParam(required=false) Double height,
         @RequestParam(required=false) String remark,
         @RequestParam Double price,
         @RequestParam Double advance,
@@ -110,6 +116,8 @@ public Order updateOrder(
     o.setWorkType(workType);
     o.setMaterials(materials);
     o.setTopLayer(topLayer);
+    o.setBgColor(bgColor);
+    o.setHeight(height);
     o.setPrice(price);
     o.setRemark(remark);
     o.setAdvancePaid(advance);

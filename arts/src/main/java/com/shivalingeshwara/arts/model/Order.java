@@ -21,6 +21,12 @@ public class Order {
     @Column(name="top_layer")
     private String topLayer;
 
+    @Column(name="bg_color")
+    private String bgColor;
+
+    @Column(name="height")
+    private Double height;
+
     @Column(name="remark")
     private String remark;
 
@@ -62,6 +68,10 @@ public void setDeliveredAt(java.time.LocalDateTime deliveredAt) {
     public String getMaterials(){ return materials; }
 
     public String getTopLayer(){ return topLayer; }
+
+    public String getBgColor(){ return bgColor; }
+
+    public Double getHeight(){ return height; }
     
     public String getRemark(){ return remark; }
 
@@ -85,6 +95,10 @@ public void setDeliveredAt(java.time.LocalDateTime deliveredAt) {
 
     public void setTopLayer(String topLayer){ this.topLayer=topLayer; }
     
+    public void setBgColor(String bgColor){ this.bgColor=bgColor; }
+
+    public void setHeight(Double height){ this.height=height; }
+
     public void setRemark(String remark){ this.remark=remark; }
 
     public void setPrice(Double price){ this.price=price; }

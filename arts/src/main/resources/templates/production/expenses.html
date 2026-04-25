@@ -8,6 +8,9 @@
     <h2>Expenses</h2>
 
     <div class="exp-actions">
+<button type="button" onclick="generateExpenseReport()" class="chart-btn">
+    Download Expense Report
+</button>
         <button onclick="openForm()" class="exp-btn">+ Add Entry</button>
 
         <select id="filterType" onchange="loadExpenses()">
