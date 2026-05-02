@@ -10,4 +10,9 @@ public class NavigationController {
     public String workInProgress(){
         return "wip";
     }
+
+    @GetMapping("/gallery")
+    public String galleryPage(){
+        return "gallery"; // your HTML file
+    }
 }

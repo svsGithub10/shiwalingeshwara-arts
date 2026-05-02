@@ -666,12 +666,31 @@ container.innerHTML += `
     <!-- LEFT -->
     <div class="prod-left">
 
-        <div class="prod-id">
-    #${o.id} ${o.workType}
+ <div class="prod-id">
 
-    ${o.status === "CREATED" ? `
-        <span class="new-badge">NEW</span>
-    ` : ``}
+    <div class="prod-id-left">
+        #${o.id} ${o.workType}
+
+        ${o.status === "CREATED" ? `
+            <span class="new-badge">NEW</span>
+        ` : ``}
+    </div>
+
+    <div class="prod-price-inline">
+
+        
+
+        <input 
+            type="number"
+            id="dp-${o.id}"
+            value="${o.displayPrice || ''}"
+            placeholder="--"
+        >
+
+        <button onclick="saveDisplayPrice(${o.id})">✔</button>
+
+    </div>
+
 </div>
 
         <div class="prod-info">
@@ -694,6 +713,7 @@ container.innerHTML += `
     <b>Height:</b> ${o.height ? o.height + " in" : "-"} <br>
 
             <b>Remark:</b> ${o.remark || "-"} <br>
+            <!--<b>Price:</b> ${o.price ? "₹" + o.price : "-"} <br> -->
             <b>Date:</b> ${o.createdAt ? new Date(o.createdAt).toLocaleDateString() : "-"}
         </div>
 
@@ -771,6 +791,40 @@ Upload locked (DXF missing)
 `
 })
 
+}
+
+async function saveDisplayPrice(orderId){
+
+    const input = document.getElementById(`dp-${orderId}`);
+    const value = input.value;
+
+    if(value === ""){
+        alert("Enter display price");
+        return;
+    }
+
+    try{
+
+        const res = await fetch(`/api/orders/${orderId}/display-price`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                displayPrice: Number(value)
+            })
+        });
+
+        if(!res.ok){
+            throw new Error("Failed to save");
+        }
+
+        showToast("Display price updated");
+
+    }catch(e){
+        console.error(e);
+        alert("Error saving price");
+    }
 }
 
 async function markInProgress(id){
@@ -1706,3 +1760,37 @@ async function generateExpenseReport(){
     // ======================
     XLSX.writeFile(wb, "expense-report.xlsx")
 }
+
+window.saveDisplayPrice = async function(orderId){
+
+    const input = document.getElementById(`dp-${orderId}`);
+    const value = input?.value;
+
+    if(value === "" || value == null){
+        alert("Enter display price");
+        return;
+    }
+
+    try{
+
+        const res = await fetch(`/api/orders/${orderId}/display-price`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                displayPrice: Number(value)
+            })
+        });
+
+        if(!res.ok){
+            throw new Error("Failed");
+        }
+
+        showToast("Display price saved");
+
+    }catch(e){
+        console.error(e);
+        alert("Error saving");
+    }
+};

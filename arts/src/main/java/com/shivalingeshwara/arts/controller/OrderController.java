@@ -223,8 +223,10 @@ public ResponseEntity<Resource> downloadDxf(@PathVariable Long id) throws Except
     }
 
     // ✅ UPDATE STATUS HERE
+if("CREATED".equals(o.getStatus())){
     o.setStatus("IN_PROGRESS");
     orderRepository.save(o);
+}
 
     org.springframework.core.io.Resource resource =
             new org.springframework.core.io.FileSystemResource(file);
@@ -309,6 +311,19 @@ public Order getOrderById(@PathVariable Long id){
 
     return orderRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Order not found"));
+}
+
+@PutMapping("/{id}/display-price")
+public Order updateDisplayPrice(
+        @PathVariable Long id,
+        @RequestBody Map<String, Double> body
+){
+
+    Order o = orderRepository.findById(id).orElseThrow();
+
+    o.setDisplayPrice(body.get("displayPrice"));
+
+    return orderRepository.save(o);
 }
 
 }

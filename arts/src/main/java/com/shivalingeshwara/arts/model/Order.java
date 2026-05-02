@@ -32,6 +32,9 @@ public class Order {
 
     private Double price;
 
+    @Column(name="display_price")
+    private Double displayPrice;
+
     @Column(name="advance_paid")
     private Double advancePaid;
 
@@ -77,6 +80,8 @@ public void setDeliveredAt(java.time.LocalDateTime deliveredAt) {
 
     public Double getPrice(){ return price; }
 
+    public Double getDisplayPrice(){ return displayPrice; }
+
     public Double getAdvancePaid(){ return advancePaid; }
 
     public String getStatus(){ return status; }
@@ -102,6 +107,8 @@ public void setDeliveredAt(java.time.LocalDateTime deliveredAt) {
     public void setRemark(String remark){ this.remark=remark; }
 
     public void setPrice(Double price){ this.price=price; }
+
+    public void setDisplayPrice(Double displayPrice){ this.displayPrice=displayPrice; }
 
     public void setAdvancePaid(Double advancePaid){ this.advancePaid=advancePaid; }
 

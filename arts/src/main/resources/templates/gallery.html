@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Shivalingeshwara Arts - Innovative artistic solutions using materials, handcrafting, painting, and digital designs.">
+    <title>Shivalingeshwara Arts - Artistic Solutions</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Roboto:wght@300;400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="icon" type="image/x-icon" href="/sa.ico">
+</head>
+<body>
+    <header>
+<nav class="navbar">
+
+<div class="logo">
+<img th:src="@{/images/logo.png}">
+<span data-en="Shivalingeshwara Arts" data-kn="ಶಿವಲಿಂಗೇಶ್ವರ ಆರ್ಟ್ಸ್">Shivalingeshwara Arts</span>
+</div>
+
+
+<button onclick="toggleLanguage()" class="lang-btn" id="langBtn">
+ಕನ್ನಡ
+</button>
+
+
+<div class="menu-toggle" id="menuToggle">
+☰
+</div>
+
+<ul class="nav-links" id="navLinks">
+
+<li>
+<a href="/" 
+data-en="Home"
+data-kn="ಮುಖಪುಟ">
+Home
+</a>
+</li>
+
+<!-- <li>
+<a href="/gallery" 
+data-en="Gallery"
+data-kn="ಗ್ಯಾಲರಿ">
+Gallery
+</a>
+</li>
+
+<li>
+<a href="#about" 
+data-en="About"
+data-kn="ನಮ್ಮ ಬಗ್ಗೆ">
+About
+</a>
+</li>
+
+<li>
+<a href="#reviews" 
+data-en="Reviews"
+data-kn="ಗ್ರಾಹಕರ ಅಭಿಪ್ರಾಯಗಳು">
+Reviews
+</a>
+</li>
+
+<li>
+<a href="#contact" 
+data-en="Contact"
+data-kn="ಸಂಪರ್ಕಿಸಿ">
+Contact
+</a>
+</li> -->
+
+<li>
+<button class="login-btn" onclick="openLogin()"
+data-en="Login"
+data-kn="ಲಾಗಿನ್">
+Login
+</button>
+</li>
+
+</ul>
+
+</nav>
+    </header>
+
+<section class="gallery">
+
+
+<div class="gallery-header-row">
+
+    <h2 data-en="Our Art Gallery" data-kn="ನಮ್ಮ ಕಲಾ ಗ್ಯಾಲರಿ">
+        Our Art Gallery
+    </h2>
+
+    <div class="gallery-filters">
+        <select id="gMaterial"></select>
+        <select id="gBg"></select>
+        <select id="gSort">
+            <option value="latest">Latest</option>
+            <option value="price">Price</option>
+        </select>
+    </div>
+
+</div>
+
+<div id="galleryGrid" class="gallery-grid">
+    <p style="text-align:center;opacity:0.6;">Loading gallery...</p>
+</div>
+
+
+</section>
+
+<!-- ✅ LOGIN MODAL (REUSED) -->
+
+<div id="loginModal" class="login-modal">
+
+<div class="login-box">
+
+<h2>Client Login</h2>
+
+<form id="loginForm">
+<input type="email" id="email" placeholder="Email Address" required>
+<p id="loginMessage"></p>
+
+<input type="password" id="password" placeholder="Password" required disabled>
+
+<label>
+<input type="checkbox" id="rememberMe"> Remember me
+</label>
+
+<button type="submit" class="primary-btn">Login</button>
+
+</form>
+
+</div>
+</div>
+
+<!-- FOOTER -->
+
+<footer>
+
+<div class="footer-grid">
+
+<div>
+
+<h3
+data-en="Shivalingeshwara Arts"
+data-kn="ಶಿವಲಿಂಗೇಶ್ವರ ಆರ್ಟ್ಸ್">
+Shivalingeshwara Arts
+</h3>
+
+<p
+data-en="Creative artistic solutions for weddings, decorations, sign boards and custom designs."
+data-kn="ವಿವಾಹ ಅಲಂಕಾರಗಳು, ಸೈನ್ ಬೋರ್ಡ್‌ಗಳು ಮತ್ತು ಕಸ್ಟಮ್ ವಿನ್ಯಾಸಗಳಿಗಾಗಿ ಸೃಜನಾತ್ಮಕ ಕಲಾತ್ಮಕ ಪರಿಹಾರಗಳು.">
+Creative artistic solutions for weddings,
+decorations and sign boards.
+</p>
+
+</div>
+
+
+<div>
+
+<h4
+data-en="Address"
+data-kn="ವಿಳಾಸ">
+Address
+</h4>
+
+<p
+data-en="Hukkeri Math Old Complex, Haveri - 581110"
+data-kn="ಹುಕ್ಕೇರಿ ಮಠ ಓಲ್ಡ್ ಕಾಂಪ್ಲೆಕ್ಸ್, ಹಾವೇರಿ - 581110">
+Hukkeri Math Old Complex, Haveri - 581110
+</p>
+
+<p
+data-en="Serving customers across many towns and districts via courier and bus transport."
+data-kn="ಕೂರಿಯರ್ ಮತ್ತು ಬಸ್ ಸಾರಿಗೆಯ ಮೂಲಕ ಅನೇಕ ಪಟ್ಟಣಗಳು ಮತ್ತು ಜಿಲ್ಲೆಗಳಿಗೆ ಸೇವೆ ನೀಡಲಾಗುತ್ತದೆ.">
+Serving customers across many towns and districts.
+</p>
+
+</div>
+
+
+<div>
+
+<h4
+data-en="Contact"
+data-kn="ಸಂಪರ್ಕ">
+Contact
+</h4>
+
+<p
+data-en="Owner: Veeranna Sheelavantar"
+data-kn="ಮಾಲೀಕರು: ವೀರಣ್ಣ ಶೀಲವಂತರ">
+Owner: Veeranna Sheelavantar
+</p>
+
+<p>
+📞 9448231988
+</p>
+
+<p>
+✉ saarts2010@gmail.com
+</p>
+
+</div>
+
+
+<div>
+
+<h4
+data-en="Follow Us"
+data-kn="ನಮ್ಮನ್ನು ಅನುಸರಿಸಿ">
+Follow Us
+</h4>
+
+<div class="social-links">
+
+<a href="#"><i class="fab fa-instagram"></i></a>
+<a href="#"><i class="fab fa-facebook"></i></a>
+<a href="#"><i class="fab fa-youtube"></i></a>
+<a href="#"><i class="fab fa-x-twitter"></i></a>
+
+</div>
+
+</div>
+
+</div>
+
+<p class="copyright"
+data-en="© 2026 Shivalingeshwara Arts. All Rights Reserved."
+data-kn="© 2026 ಶಿವಲಿಂಗೇಶ್ವರ ಆರ್ಟ್ಸ್. ಎಲ್ಲಾ ಹಕ್ಕುಗಳು ಕಾಯ್ದಿರಿಸಲಾಗಿದೆ.">
+© 2026 Shivalingeshwara Arts
+</p>
+
+</footer>
+
+    <script th:src="@{/js/script.js}"></script>
+
+</body>
+</html>

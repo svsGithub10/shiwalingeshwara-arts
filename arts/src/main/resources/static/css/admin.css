@@ -2528,3 +2528,202 @@ input[type="date"]::-webkit-calendar-picker-indicator{
 .bill-generate:active{
     transform:scale(0.96);
 }
+
+/* align left + right */
+.prod-id{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+/* right side price */
+.prod-price-inline{
+    display:flex;
+    align-items:center;
+    gap:4px;
+    font-size:13px;
+    color:#888;
+}
+
+/* ₹ label */
+.dp-label{
+    opacity:0.6;
+}
+
+/* input = looks like text */
+.prod-price-inline input{
+    width:60px;
+    border:none;
+    outline:none;
+    background:transparent;
+    color:#3333337a;
+
+    font-size:13px;
+    text-align:right;
+}
+
+/* remove arrows (chrome) */
+.prod-price-inline input::-webkit-outer-spin-button,
+.prod-price-inline input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* button = minimal */
+.prod-price-inline button{
+    border:none;
+    background:transparent;
+    color:#999;
+    cursor:pointer;
+    font-size:13px;
+}
+
+/* subtle hover only */
+.prod-price-inline button:hover{
+    color:#22c55e;
+}
+
+/* ===============================
+   PRODUCTION CARD MOBILE TUNE
+================================ */
+@media (max-width:600px){
+
+    /* CARD LAYOUT */
+    .prod-card{
+        flex-direction:column;
+        gap:10px;
+        padding:12px;
+    }
+
+    /* LEFT SIDE */
+    .prod-left{
+        gap:6px;
+    }
+
+    /* ID + PRICE ROW */
+    .prod-id{
+        font-size:12px;
+        gap:6px;
+    }
+
+    /* INLINE PRICE (smaller + tighter) */
+    .prod-price-inline{
+        font-size:11px;
+        gap:2px;
+    }
+
+    .prod-price-inline input{
+        width:45px;
+        font-size:11px;
+    }
+
+    .prod-price-inline button{
+        font-size:11px;
+    }
+
+    /* INFO TEXT */
+    .prod-info{
+        font-size:11px;
+        line-height:1.4;
+    }
+
+    /* STATUS */
+    .status-pill{
+        font-size:10px;
+        padding:3px 8px;
+    }
+
+    /* RIGHT SIDE */
+    .prod-right{
+        width:100%;
+        gap:6px;
+    }
+
+    /* IMAGE */
+    .prod-image{
+        height:120px;
+    }
+
+    /* ACTION BUTTONS */
+    .prod-actions-row button,
+    .upload-btn{
+        font-size:11px;
+        padding:6px;
+    }
+
+    /* NO IMAGE TEXT */
+    .no-image{
+        height:120px;
+        font-size:12px;
+    }
+
+}
+
+/* ===============================
+   QUICK PAYMENT FULLSCREEN (MOBILE)
+================================ */
+@media (max-width:600px){
+
+    /* overlay already full, just ensure no padding gap */
+    #quickPaymentModal.modal{
+        padding:0;
+        align-items:stretch;
+        justify-content:stretch;
+    }
+
+    /* make modal fill screen */
+    #quickPaymentModal .modal-box{
+        width:100% !important;
+        height:100%;
+        max-height:100%;
+
+        border-radius:0;        /* edge-to-edge */
+        padding:16px;
+
+        display:flex;
+        flex-direction:column;
+        justify-content:flex-start;
+    }
+
+    /* header spacing */
+    #quickPaymentModal h3{
+        margin-top:10px;
+        margin-bottom:10px;
+        font-size:18px;
+    }
+
+    /* QR center + scale */
+    #quickPaymentModal .qr-section{
+        flex:1;                      /* takes available space */
+        display:flex;
+        flex-direction:column;
+        justify-content:center;
+        align-items:center;
+    }
+
+    #quickPaymentModal .qr-img{
+        width:240px;
+        height:240px;
+    }
+
+    /* amount input */
+    #quickPaymentModal input{
+        font-size:14px;
+        padding:10px;
+        margin-top:10px;
+    }
+
+    /* actions pinned bottom */
+    #quickPaymentModal .modal-actions{
+        margin-top:auto;
+    }
+
+    /* close button (better tap target) */
+    #quickPaymentModal .modal-close{
+        top:10px;
+        right:10px;
+        width:36px;
+        height:36px;
+    }
+
+}

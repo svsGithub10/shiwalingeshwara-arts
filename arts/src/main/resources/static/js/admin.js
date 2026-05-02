@@ -3233,34 +3233,35 @@ function updateQuickQR(){
     document.getElementById("quickQr").src = qrUrl
 }
 
-let autoRefreshInterval = null;
+// let autoRefreshInterval = null;
 
-function startAutoRefresh(){
-    if(autoRefreshInterval) return;
+// function startAutoRefresh(){
+//     if(autoRefreshInterval) return;
 
-    autoRefreshInterval = setInterval(()=>{
-        if(document.visibilityState === "visible"){
-            refreshOrdersView(); // your existing function
-        }
-    }, 1000); // 1 sec
-}
+//     autoRefreshInterval = setInterval(()=>{
+//         if(document.visibilityState === "visible"){
+//             refreshOrdersView(); // your existing function
+//         }
+//     }, 1000); // 1 sec
+// }
 
-function stopAutoRefresh(){
-    clearInterval(autoRefreshInterval);
-    autoRefreshInterval = null;
-}
+// function stopAutoRefresh(){
+//     clearInterval(autoRefreshInterval);
+//     autoRefreshInterval = null;
+// }
 
-// start when page loads
-window.addEventListener("DOMContentLoaded", startAutoRefresh);
+// // start when page loads
+// window.addEventListener("DOMContentLoaded", startAutoRefresh);
 
-// pause when tab inactive
-document.addEventListener("visibilitychange", ()=>{
-    if(document.hidden){
-        stopAutoRefresh();
-    }else{
-        startAutoRefresh();
-    }
-});
+// // pause when tab inactive
+// document.addEventListener("visibilitychange", ()=>{
+//     if(document.hidden){
+//         startAutoRefresh();
+//     }else{
+        
+//         stopAutoRefresh();
+//     }
+// });
 
 async function generateExpenseReport(){
 
