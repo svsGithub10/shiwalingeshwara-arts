@@ -133,6 +133,17 @@ if(createdAt != null && !createdAt.isBlank()){
     // ✅ ONLY replace if new file uploaded
     if(file != null && !file.isEmpty()){
 
+            // delete old file
+    if(o.getDxfFile() != null){
+
+        java.io.File oldFile = new java.io.File(o.getDxfFile());
+
+        if(oldFile.exists()){
+            boolean deleted = oldFile.delete();
+System.out.println("Old file deleted: " + deleted);
+        }
+    }
+
         String folder = FileStorageUtil.createFolder("C:/shivalingeshwara-arts/dxf");
 
         String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
@@ -240,20 +251,39 @@ if("CREATED".equals(o.getStatus())){
 public String uploadResult(@PathVariable Long id,
                            @RequestParam("file") MultipartFile file) throws Exception {
 
+    Order o = orderRepository.findById(id).orElseThrow();
+
     if(file == null || file.isEmpty()){
         return "no file";
+    }
+
+    // ✅ delete old result image
+    if(o.getResultImage() != null){
+
+        java.io.File oldFile = new java.io.File(o.getResultImage());
+
+        if(oldFile.exists()){
+                        boolean deleted = oldFile.delete();
+System.out.println("Old file deleted: " + deleted);
+        }
     }
 
     String folder = FileStorageUtil.createFolder("C:/shivalingeshwara-arts/results");
 
     // 🔥 prevent duplicate names
-    String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+    String fileName = System.currentTimeMillis() +".jpg";
 
     String filePath = folder + "/" + fileName;
 
-    file.transferTo(new java.io.File(filePath));
+    java.io.File outputFile = new java.io.File(filePath);
 
-    Order o = orderRepository.findById(id).orElseThrow();
+    // ✅ compress + resize image
+    net.coobird.thumbnailator.Thumbnails
+            .of(file.getInputStream())
+            .size(1600, 1600) // resize large images
+            .outputQuality(0.6) // compression quality
+            .outputFormat("jpg")
+            .toFile(outputFile);
 
     o.setResultImage(filePath);
     o.setStatus("COMPLETED");
