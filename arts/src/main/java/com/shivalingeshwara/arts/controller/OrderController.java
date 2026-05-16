@@ -180,6 +180,16 @@ public Order markInProgress(@PathVariable Long id){
     return orderRepository.save(o);
 }
 
+@PutMapping("/{id}/completed")
+public Order markCompleted(@PathVariable Long id){
+
+    Order o = orderRepository.findById(id).orElseThrow();
+
+    o.setStatus("COMPLETED");
+
+    return orderRepository.save(o);
+}
+
 @DeleteMapping("/{id}")
 public Map<String,String> deleteOrder(@PathVariable Long id){
 

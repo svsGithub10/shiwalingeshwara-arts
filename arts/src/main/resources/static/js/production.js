@@ -718,9 +718,10 @@ container.innerHTML += `
         </div>
 
         <!-- STATUS BOTTOM -->
-        <div class="status-pill ${statusClass}">
-            ${o.status}
-        </div>
+<div class="status-pill ${statusClass}" 
+     onclick="updateStatus(${o.id}, '${o.status}')">
+    ${o.status}
+</div>
 
     </div>
 
@@ -791,6 +792,31 @@ Upload locked (DXF missing)
 `
 })
 
+}
+
+async function updateStatus(id, status){
+
+    // only IN_PROGRESS can become COMPLETED
+    if(status !== "IN_PROGRESS") return;
+
+    try{
+
+        const response = await fetch(`/api/orders/${id}/completed`,{
+            method:"PUT"
+        });
+
+        if(response.ok){
+
+            // instant UI update
+            loadProductionOrders();
+
+        }else{
+            alert("Failed to update");
+        }
+
+    }catch(err){
+        console.error(err);
+    }
 }
 
 async function saveDisplayPrice(orderId){

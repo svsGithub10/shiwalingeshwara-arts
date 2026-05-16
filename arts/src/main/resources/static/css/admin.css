@@ -2727,3 +2727,15 @@ input[type="date"]::-webkit-calendar-picker-indicator{
     }
 
 }
+
+.status-pill{
+    cursor:pointer;
+}
+
+.status-created{
+    cursor:default;
+}
+
+.status-completed{
+    cursor:default;
+}
